@@ -15,7 +15,7 @@ body:not(.editable) .edit { display: none; }
 #empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; opacity: .7; pointer-events: none; }
 #view.drop { outline: 3px dashed var(--accent); outline-offset: -8px; }
 
-/* Fase 9f: listas y paleta de picker.ts (en lugar de <select> / <input type=color>). */
+/* Phase 9f: lists and palette from picker.ts (instead of <select> / <input type=color>). */
 .pick { position: relative; display: inline-block; }
 .pick > button { font: inherit; padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); min-height: 32px; cursor: pointer; }
 .pick > button.pick-color { width: 34px; padding: 0; }

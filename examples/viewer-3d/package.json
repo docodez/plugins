@@ -2,7 +2,7 @@
   "name": "docodez-visor3d",
   "private": true,
   "version": "1.2.2",
-  "description": "Plugin de Docodez: visor de modelos 3D (three.js), compilado con Vite.",
+  "description": "Docodez plugin: 3D model viewer (three.js), built with Vite.",
   "type": "module",
   "scripts": {
     "dev": "vite",

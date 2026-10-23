@@ -1,8 +1,8 @@
-// Listas y selector de color dibujados en la página, para cualquier plugin (visor3d, hojas).
-// Fase 9f, bug reportado: la lista nativa (<select>) de los modelos del visor 3D se abría en la esquina de arriba a la
-// izquierda de la ventana (sobre el árbol). Con el visor integrado (WebView2 dentro de Avalonia) el navegador dibuja sus
-// ventanitas nativas (<select>, <input type="color">, fechas) relativas a otra ventana. Dibujarlas en la propia página
-// las deja siempre en su lugar, en todas las plataformas.
+// Drop-down lists and a color picker drawn in the page, for any plugin (3D viewer, spreadsheets).
+// Phase 9f, reported bug: the native list (<select>) of models in the 3D viewer opened in the top-left corner of the
+// window (over the tree). With the built-in viewer (WebView2 inside Avalonia), the browser draws its native popups
+// (<select>, <input type="color">, date pickers) relative to another window. Drawing them in the page itself keeps them
+// in the right place on every platform.
 
 let openPopup: HTMLElement | null = null;
 
@@ -30,13 +30,13 @@ function toggle(popup: HTMLElement): void {
 }
 
 export interface Picker {
-  /** Las opciones y la elegida. */
+  /** Sets the options and the selected one (null for none). */
   set(items: string[], value: string | null): void;
   readonly value: string | null;
   onchange: ((value: string) => void) | null;
 }
 
-/** Una lista desplegable en <paramref name="host"/> (un div vacío). */
+/** Creates a drop-down list inside `host` (an empty div). `label` is its accessible name. */
 export function createPicker(host: HTMLElement, label: string): Picker {
   host.classList.add('pick');
   const button = document.createElement('button');
@@ -85,7 +85,7 @@ const PALETTE = [
   '#a5d6a7', '#43a047', '#1b5e20', '#90caf9', '#1e88e5', '#0d47a1', '#ce93d8', '#8e24aa',
 ];
 
-/** Un botón con el color elegido que abre una paleta (y un campo #rrggbb). */
+/** Creates a button showing the chosen color that opens a palette (plus a #rrggbb field). Returns `set` to change the color from code. */
 export function createColorPicker(host: HTMLElement, label: string, initial: string, onchange: (color: string) => void): { set(color: string): void } {
   host.classList.add('pick');
   const button = document.createElement('button');

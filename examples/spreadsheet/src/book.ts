@@ -1,5 +1,5 @@
-// Leer y escribir los libros (SheetJS) y lo de las celdas. Excel (.xlsx, .xls) y LibreOffice (.ods) van y vuelven en
-// su formato; los CSV se leen y escriben acá (separador, coma decimal, codificación y ceros a la izquierda como venían).
+// Reading and writing workbooks (SheetJS), and cell handling. Excel (.xlsx, .xls) and LibreOffice (.ods) round-trip in
+// their own format; CSV files are read and written here (keeping delimiter, decimal comma, encoding and leading zeros).
 import * as XLSX from 'xlsx';
 
 export type Kind = 'csv' | 'tsv' | 'xlsx' | 'xls' | 'ods';
@@ -8,7 +8,7 @@ export const FILE_TYPES = ['.csv', '.tsv', '.xlsx', '.xls', '.ods'];
 
 export interface CsvInfo {
   delimiter: string;
-  /** El separador de decimales es la coma (CSV con ";" de Excel en español). */
+  /** The decimal separator is a comma (";" CSV from Spanish Excel). */
   decimalComma: boolean;
   bom: boolean;
   latin1: boolean;
@@ -28,10 +28,10 @@ export function kindOf(name: string): Kind {
   return (['csv', 'tsv', 'xlsx', 'xls', 'ods'].includes(e) ? e : 'xlsx') as Kind;
 }
 
-/** Si el libro puede tener varias hojas (un CSV es una sola). */
+/** Whether the workbook can have several sheets (a CSV has only one). */
 export const multiSheet = (book: Book) => book.kind !== 'csv' && book.kind !== 'tsv';
 
-// --- abrir ---------------------------------------------------------------------------------------------------------
+// --- open ----------------------------------------------------------------------------------------------------------
 
 export function load(name: string, data: ArrayBuffer): Book {
   const kind = kindOf(name);
@@ -41,23 +41,23 @@ export function load(name: string, data: ArrayBuffer): Book {
     const rows = parseCsv(text, delimiter);
     const decimalComma = delimiter === ';' || (delimiter === '\t' && looksDecimalComma(rows));
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows.map((r) => r.map((v) => typed(v, decimalComma)))), stem(name).slice(0, 31) || 'Hoja1');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows.map((r) => r.map((v) => typed(v, decimalComma)))), stem(name).slice(0, 31) || 'Sheet1');
     return { wb, kind, csv: { delimiter, decimalComma, bom, latin1 } };
   }
 
   const wb = XLSX.read(new Uint8Array(data), { type: 'array', cellFormula: true, cellNF: true, cellStyles: true });
-  if (wb.SheetNames.length === 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([[]]), 'Hoja1');
+  if (wb.SheetNames.length === 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([[]]), 'Sheet1');
   return { wb, kind };
 }
 
-/** Un libro nuevo con una hoja vacía. */
+/** A new workbook with one empty sheet. */
 export function newBook(sheetName: string): Book {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([[]]), sheetName);
   return { wb, kind: 'xlsx' };
 }
 
-// --- guardar -------------------------------------------------------------------------------------------------------
+// --- save ----------------------------------------------------------------------------------------------------------
 
 export function save(book: Book): ArrayBuffer {
   if (book.kind === 'csv' || book.kind === 'tsv') {
@@ -78,7 +78,7 @@ export function save(book: Book): ArrayBuffer {
   return XLSX.write(book.wb, { bookType, type: 'array', compression: true, cellStyles: true }) as ArrayBuffer;
 }
 
-/** Las filas de una hoja como valores (para el CSV): el número como número, el resto como lo que se ve. */
+/** A sheet's rows as values (for CSV): numbers as numbers, the rest as displayed. */
 function sheetRows(ws: XLSX.WorkSheet): unknown[][] {
   if (!ws['!ref']) return [];
   const range = XLSX.utils.decode_range(ws['!ref']);
@@ -105,7 +105,7 @@ function decodeText(data: ArrayBuffer): { text: string; bom: boolean; latin1: bo
   try {
     return { text: new TextDecoder('utf-8', { fatal: true }).decode(bom ? bytes.subarray(3) : bytes), bom, latin1: false };
   } catch {
-    // No es UTF-8: un CSV viejo de Excel en Windows (Latin-1 / Windows-1252).
+    // Not UTF-8: an old Excel CSV on Windows (Latin-1 / Windows-1252).
     return { text: new TextDecoder('windows-1252').decode(bytes), bom: false, latin1: true };
   }
 }
@@ -127,7 +127,7 @@ function looksDecimalComma(rows: string[][]): boolean {
   return comma > dot;
 }
 
-/** CSV con comillas ("a ""b"" c", saltos de línea adentro). */
+/** CSV with quotes ("a ""b"" c", line breaks inside). */
 export function parseCsv(text: string, delimiter: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [], field = '', quoted = false, i = 0;
@@ -162,7 +162,7 @@ export function toCsv(rows: unknown[][], info: CsvInfo): string {
   return rows.map((r) => r.map(cell).join(info.delimiter)).join('\r\n') + (rows.length ? '\r\n' : '');
 }
 
-/** El texto de un CSV como valor de celda: número (sin perder ceros a la izquierda), verdadero/falso o texto. */
+/** CSV text as a cell value: number (keeping leading zeros), true/false or text. */
 function typed(v: string, decimalComma: boolean): string | number | boolean {
   const t = v.trim();
   if (t === '') return v;
@@ -172,13 +172,13 @@ function typed(v: string, decimalComma: boolean): string | number | boolean {
   return v;
 }
 
-// --- celdas ---------------------------------------------------------------------------------------------------------
+// --- cells ----------------------------------------------------------------------------------------------------------
 
-/** Lo que se ve en la celda (con su formato: fechas, porcentajes, decimales...). */
+/** What the cell shows (with its format: dates, percentages, decimals...). */
 export function display(cell: XLSX.CellObject | undefined): string {
   if (!cell) return '';
   if (cell.t === 'e') return cell.w ?? '#ERR';
-  if (cell.f && (cell.v === undefined || cell.v === '')) return '=' + cell.f; // fórmula nueva: sin resultado calculado
+  if (cell.f && (cell.v === undefined || cell.v === '')) return '=' + cell.f; // new formula: no computed result
   if (cell.w != null) return cell.w;
   try {
     return XLSX.utils.format_cell(cell);
@@ -187,17 +187,17 @@ export function display(cell: XLSX.CellObject | undefined): string {
   }
 }
 
-/** Lo que se edita: la fórmula ("=A1+B1") o el valor. */
+/** What gets edited: the formula ("=A1+B1") or the value. */
 export function raw(cell: XLSX.CellObject | undefined): string {
   if (!cell) return '';
   if (cell.f) return '=' + cell.f;
   if (cell.t === 'b') return cell.v ? 'TRUE' : 'FALSE';
-  if (cell.t === 'n' && cell.z && XLSX.SSF.is_date(cell.z as string)) return display(cell); // fecha: como se ve
+  if (cell.t === 'n' && cell.z && XLSX.SSF.is_date(cell.z as string)) return display(cell); // date: as displayed
   if (cell.t === 'n') return String(cell.v);
   return String(cell.v ?? '');
 }
 
-/** Pone lo escrito en la celda (r, c): "" la vacía, "=..." es una fórmula, un número, TRUE/FALSE, o texto. */
+/** Puts the typed input in cell (r, c): "" clears it, "=..." is a formula, a number, TRUE/FALSE, or text. */
 export function setCell(ws: XLSX.WorkSheet, r: number, c: number, input: string, decimalComma = false): void {
   const addr = XLSX.utils.encode_cell({ r, c });
   const old = ws[addr] as XLSX.CellObject | undefined;
@@ -212,7 +212,7 @@ export function setCell(ws: XLSX.WorkSheet, r: number, c: number, input: string,
     cell = { t: 's', v: '', f: input.slice(1) };
   } else if (typeof value === 'number') {
     cell = { t: 'n', v: value };
-    if (old?.z && !XLSX.SSF.is_date(old.z as string)) cell.z = old.z; // conserva el formato (decimales, %, moneda)
+    if (old?.z && !XLSX.SSF.is_date(old.z as string)) cell.z = old.z; // keep the format (decimals, %, currency)
   } else if (typeof value === 'boolean') {
     cell = { t: 'b', v: value };
   } else {
@@ -238,7 +238,7 @@ export function addSheet(book: Book, name: string): string {
   return unique;
 }
 
-/** Cambia el nombre de una hoja (Excel: hasta 31 caracteres, sin \ / ? * [ ] :). False si no se puede. */
+/** Renames a sheet (Excel: up to 31 characters, no \ / ? * [ ] :). False if not possible. */
 export function renameSheet(book: Book, index: number, name: string): boolean {
   const clean = name.replace(/[\\/?*[\]:]/g, '').trim().slice(0, 31);
   const old = book.wb.SheetNames[index];

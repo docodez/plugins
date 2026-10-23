@@ -1,8 +1,8 @@
-// Lista de compras - plugin de Docodez (ver doc/04-plugins.md y README.md). TypeScript, compilado con Vite.
-// - La LISTA (productos, cantidades, notas, fotos, precios) va en el nodo: docodez.getJSON / setJSON; las fotos, como anexos.
-// - Los CATÁLOGOS (grupos y productos para elegir rápido: supermercado, ferretería...) son de la APP, no del documento:
-//   docodez.getAppJSON / setAppJSON (API 2). Cada producto de la lista lleva el nombre y el emoji de su grupo, así una lista
-//   abierta en otro Docodez se entiende igual, y se ofrece agregar a su catálogo lo que no tenga.
+// Shopping list - Docodez plugin (see doc/04-plugins.md and README.md). TypeScript, built with Vite.
+// - The LIST (items, quantities, notes, photos, prices) is stored in the node: docodez.getJSON / setJSON; photos as attachments.
+// - The CATALOGS (groups and items to pick quickly: grocery, hardware...) belong to the APP, not the document:
+//   docodez.getAppJSON / setAppJSON (API 2). Each list item carries its group's name and emoji, so a list opened in
+//   another Docodez still makes sense, and it offers to add whatever is missing to that user's catalog.
 import type { DocodezContext } from '../../../sdk/docodez';
 import { installDevDocodez } from '../../../sdk/docodez-dev';
 import { createPicker, type Picker } from '../../../sdk/picker';
@@ -31,22 +31,22 @@ const el = <K extends keyof HTMLElementTagNameMap>(tag: K, cls?: string, text?: 
 const ctx: DocodezContext = await docodez.ready;
 const lang = (['es', 'en', 'fr'] as const).includes(ctx.language) ? ctx.language : 'en';
 const t = TEXTS[lang];
-const hasAppData = typeof docodez.getAppJSON === 'function'; // un Docodez viejo (API 1) no lo tiene
+const hasAppData = typeof docodez.getAppJSON === 'function'; // an old Docodez (API 1) does not have it
 let editable = ctx.editable;
 
 let store: AppStore = normalizeStore(hasAppData ? await docodez.getAppJSON().catch(() => null) : null, lang);
 let list: ShoppingList = normalizeList(await docodez.getJSON().catch(() => null));
 let catalog: Catalog | null = catalogOf(store, list);
 
-/** La moneda: la de la lista, si no la de los ajustes. */
+/** The currency: the list's, else the one in settings. */
 const cur = () => list.currency || store.settings.currency || '$';
-/** Fase 9l: el impuesto (%) de una tienda. */
+/** Phase 9l: a store's tax (%). */
 const rateOf = (shop: string) => taxRateFor(store, shop);
-/** Fase 9l: la tienda elegida arriba (lo que se agrega va a esa tienda), o null. */
+/** Phase 9l: the store picked at the top (new items go to that store), or null. */
 const currentShop = (): Shop | null => store.shops.find((x) => x.id === store.lastShop) ?? null;
 const shopEmoji = (name: string) => findShop(store, name)?.emoji || list.shops.find((x) => norm(x.name) === norm(name))?.emoji || '🏪';
 
-// --- guardar -------------------------------------------------------------------------------------------------------------
+// --- saving --------------------------------------------------------------------------------------------------------------
 let saveTimer = 0;
 let storeTimer = 0;
 
@@ -84,10 +84,10 @@ async function saveStoreNow(): Promise<void> {
   }
 }
 
-// La primera vez, el catálogo inicial queda guardado en los datos de la app.
+// The first time, the starter catalog is saved in the app data.
 if (hasAppData && !(await docodez.getAppData().catch(() => null))) void saveStoreNow();
 
-// --- avisos --------------------------------------------------------------------------------------------------------------
+// --- toasts --------------------------------------------------------------------------------------------------------------
 let toastTimer = 0;
 function toast(text: string): void {
   const box = $('toast');
@@ -97,7 +97,7 @@ function toast(text: string): void {
   toastTimer = window.setTimeout(() => box.classList.remove('on'), 2200);
 }
 
-// --- diálogos dentro de la página (prompt/confirm del navegador no andan bien dentro de Docodez) --------------------------
+// --- in-page dialogs (the browser's prompt/confirm do not work well inside Docodez) ---------------------------------------
 interface Field { label: string; value?: string; placeholder?: string; kind?: 'text' | 'choice' | 'multi'; choices?: string[]; values?: string[]; inputMode?: string }
 
 function dialog(title: string, fields: Field[], okText = t.ok, danger = false): Promise<string[] | null> {
@@ -112,7 +112,7 @@ function dialog(title: string, fields: Field[], okText = t.ok, danger = false): 
       const label = el(f.kind === 'choice' || f.kind === 'multi' ? 'div' : 'label', 'field');
       if (f.label) label.appendChild(el('span', '', f.label));
       if (f.kind === 'multi') {
-        // Fase 9l: varias a la vez (los catálogos de una tienda); devuelve las elegidas separadas por \n.
+        // Phase 9l: several at once (a store's catalogs); returns the chosen ones separated by \n.
         const group = el('div', 'choices');
         const chosen = new Set(f.values ?? []);
         choiceValues[i] = [...chosen].join('\n');
@@ -173,7 +173,7 @@ let modalClose: (() => void) | null = null;
 const confirmBox = async (text: string, okText = t.ok, danger = false) => (await dialog(text, [], okText, danger)) != null;
 const askText = async (title: string, label: string, value = '') => (await dialog(title, [{ label, value }]))?.[0] ?? null;
 
-// --- la lista ------------------------------------------------------------------------------------------------------------
+// --- the list ------------------------------------------------------------------------------------------------------------
 const groupEmoji = (name: string) =>
   findGroup(catalog, name)?.emoji || list.groups.find((g) => norm(g.name) === norm(name))?.emoji || (name ? '•' : '🛒');
 
@@ -209,7 +209,7 @@ function addItem(name: string, group: string, emoji: string, qty: number | null,
   return item;
 }
 
-/** Algo cambió en la lista: guardar y volver a dibujar. */
+/** Something changed in the list: save and redraw. */
 function commit(flashId?: string): void {
   scheduleSave();
   renderList();
@@ -244,7 +244,7 @@ function renderList(): void {
       `<span class="count">${items.filter((i) => i.done).length}/${items.length}</span>`;
     section.appendChild(head);
     if (byShop) {
-      // Fase 9l: lo que va a costar en esa tienda, con sus impuestos.
+      // Phase 9l: what it will cost at that store, with its taxes.
       const st = sum(items, rateOf);
       if (st.priced) section.appendChild(el('div', 'shop-sum', sumText(st)));
     }
@@ -260,7 +260,7 @@ function renderList(): void {
   renderBanner();
 }
 
-/** Fase 9l: "Subtotal $20 + imp. $1,65 = $21,65" (o solo el total, si no hay impuestos). */
+/** Phase 9l: "Subtotal $20 + tax $1.65 = $21.65" (or only the total, if there is no tax). */
 function sumText(st: Sum): string {
   return st.tax
     ? `${t.subtotal} ${money(st.subtotal, cur())} + ${t.taxShort} ${money(st.tax, cur())} = ${money(st.total, cur())}`
@@ -278,7 +278,7 @@ function itemRow(item: ListItem, byShop = false): HTMLElement {
     e.stopPropagation();
     if (!editable) { toast(t.viewMode); return; }
     item.done = !item.done;
-    // Fase 9l: comprado = al precio de compra (el elegido, o el mejor) y en esa tienda.
+    // Phase 9l: bought = at the purchase price (the chosen one, or the best) and at that store.
     if (item.done) {
       const offer = usedOffer(item);
       if (offer && !item.chosen) item.chosen = offer.id;
@@ -313,7 +313,7 @@ function itemRow(item: ListItem, byShop = false): HTMLElement {
   return row;
 }
 
-// --- aviso: lo que esta lista tiene y el catálogo no -----------------------------------------------------------------------
+// --- banner: what this list has and the catalog does not -------------------------------------------------------------------
 let bannerDismissed = false;
 
 function renderBanner(): void {
@@ -322,7 +322,7 @@ function renderBanner(): void {
   banner.hidden = true;
   if (bannerDismissed || list.items.length === 0 || !hasAppData) return;
   const owner = list.catalogName && !store.catalogs.some((c) => c.id === list.catalogId || norm(c.name) === norm(list.catalogName));
-  // Falta algo en todos los catálogos: avisar. Si la lista es de un catálogo que no se tiene, se crea con todo lo suyo.
+  // Something is missing from every catalog: say so. If the list uses a catalog the user lacks, create it with all its items.
   const lacking = missingInCatalog(list, store.catalogs);
   const count = lacking.reduce((n, g) => n + g.products.length, 0);
   if (count === 0) return;
@@ -336,7 +336,7 @@ function renderBanner(): void {
       store.catalogs.push(created);
     }
     for (const g of missing) {
-      // Cada grupo al catálogo que ya lo tiene (primero el actual); si ninguno, al nuevo o al actual.
+      // Each group goes to the catalog that already has it (current one first); if none, to the new or the current one.
       const target = created ?? (findGroup(catalog, g.name) ? catalog : store.catalogs.find((c) => findGroup(c, g.name))) ?? catalog!;
       for (const p of g.products) addToCatalog(target, g.name, g.emoji, p.name, p.unit, p.taxable);
     }
@@ -354,7 +354,7 @@ function renderBanner(): void {
   banner.hidden = false;
 }
 
-// --- agregar escribiendo ---------------------------------------------------------------------------------------------------
+// --- add by typing --------------------------------------------------------------------------------------------------------
 const addInput = $<HTMLInputElement>('addInput');
 const suggest = $('suggest');
 let suggestIndex = -1;
@@ -418,7 +418,7 @@ addInput.addEventListener('keydown', (e) => {
 });
 $('addBtn').onclick = () => addInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
 
-// --- Fase 9l: la tienda de arriba (lo que se agrega va a esa tienda; elige su catálogo) ------------------------------------
+// --- Phase 9l: the store at the top (new items go to that store; it picks its catalog) --------------------------------------
 const shopPicker: Picker = createPicker($('shopPick'), t.shop);
 const shopLabel = (x: Shop) => `${x.emoji} ${x.name}`;
 
@@ -440,7 +440,7 @@ shopPicker.onchange = async (label) => {
   renderAll();
 };
 
-/** Con una tienda elegida, el catálogo pasa a uno de los suyos. */
+/** With a store picked, switch the catalog to one of its own. */
 function selectShopCatalog(): void {
   const shop = currentShop();
   if (!shop || !shop.catalogIds.length || (catalog && shop.catalogIds.includes(catalog.id))) return;
@@ -448,7 +448,7 @@ function selectShopCatalog(): void {
   if (first) { catalog = first; store.lastCatalog = first.id; }
 }
 
-// --- Fase 9l: tiendas y ajustes (datos de la app: se pueden cambiar también en modo vista) -------------------------------
+// --- Phase 9l: stores and settings (app data: can be changed in view mode too) ---------------------------------------------
 async function editShop(shop: Shop | null): Promise<Shop | null> {
   const catalogLabels = store.catalogs.map((c) => `${c.emoji} ${c.name}`);
   const r = await dialog(shop ? t.editShop : t.newShop.replace('...', ''), [
@@ -467,7 +467,7 @@ async function editShop(shop: Shop | null): Promise<Shop | null> {
   target.catalogIds = store.catalogs.filter((c) => chosen.includes(`${c.emoji} ${c.name}`)).map((c) => c.id);
   target.tax = parseNum(r[3]);
   if (!shop) store.shops.push(target);
-  // Cambió el nombre: también en esta lista.
+  // Renamed: update this list too.
   if (shop && oldName && norm(oldName) !== norm(target.name) && editable) {
     for (const it of list.items) {
       if (norm(it.shop) === norm(oldName)) it.shop = target.name;
@@ -539,7 +539,7 @@ async function editSettings(): Promise<void> {
   renderAll();
 }
 
-// --- el panel del catálogo -------------------------------------------------------------------------------------------------
+// --- the catalog panel -----------------------------------------------------------------------------------------------------
 const panel = $('panel');
 let panelEditing = false;
 const openGroups = new Set<string>();
@@ -658,7 +658,7 @@ function renderPanel(): void {
         saveStore();
         renderAll();
       };
-      // Fase 9l: si los productos del grupo pagan impuestos.
+      // Phase 9l: whether the group's items are taxed.
       const tax = el('button', 'mini tax' + (group.taxable ? ' on' : ''), group.taxable ? t.taxShort : t.noTaxShort) as HTMLButtonElement;
       tax.title = t.taxable;
       tax.onclick = () => { group.taxable = !group.taxable; saveStore(); renderPanel(); };
@@ -703,7 +703,7 @@ $('closePanel').onclick = () => openPanel(false);
 $('closePanel').setAttribute('aria-label', t.close);
 $('catalogBtn').onclick = () => openPanel();
 
-// menú del catálogo
+// catalog menu
 const catalogMenu = $('catalogMenu');
 $('catalogMenuBtn').onclick = (e) => { e.stopPropagation(); toggleMenu(catalogMenu); };
 
@@ -751,7 +751,7 @@ function buildCatalogMenu(): void {
   }, true);
 }
 
-// --- menú de la lista -------------------------------------------------------------------------------------------------------
+// --- list menu ------------------------------------------------------------------------------------------------------------
 const listMenu = $('menu');
 $('menuBtn').onclick = (e) => { e.stopPropagation(); buildListMenu(); toggleMenu(listMenu); };
 $('menuBtn').setAttribute('aria-label', t.more);
@@ -763,7 +763,7 @@ function buildListMenu(): void {
     b.onclick = () => { closeMenus(); run(); };
     listMenu.appendChild(b);
   };
-  // Fase 9l: tiendas y ajustes son de la app: también en modo vista.
+  // Phase 9l: stores and settings are app data: available in view mode too.
   entry(t.shops + '...', () => manageShops());
   entry(t.settings, () => editSettings());
   if (!editable) { listMenu.appendChild(el('div', 'menu-note', t.viewMode)); return; }
@@ -789,9 +789,9 @@ async function removeItems(items: ListItem[]): Promise<void> {
   const ids = new Set(items.map((i) => i.id));
   list.items = list.items.filter((i) => !ids.has(i.id));
   commit();
-  // Las fotos de esos productos (anexos) también se van.
+  // Those items' photos (attachments) go too.
   for (const name of items.flatMap((i) => i.photos)) {
-    try { await docodez.deleteAttachment?.(name); } catch { /* ya no estaba */ }
+    try { await docodez.deleteAttachment?.(name); } catch { /* already gone */ }
   }
 }
 
@@ -809,7 +809,7 @@ document.addEventListener('pointerdown', (e) => {
   if (openMenu && !openMenu.contains(e.target as Node) && !(e.target as HTMLElement).closest?.('.menu-btn')) closeMenus();
 });
 
-// --- editar un producto -------------------------------------------------------------------------------------------------
+// --- edit an item ---------------------------------------------------------------------------------------------------------
 let editorItem: ListItem | null = null;
 
 function openEditor(item: ListItem): void {
@@ -840,8 +840,8 @@ function renderEditor(): void {
   sheet.appendChild(head);
   if (ro) sheet.appendChild(el('div', 'note-ro', t.viewMode));
 
-  // Un <div>, no un <label>: un clic dentro de un <label> el navegador lo pasa a su primer botón (tocar la tienda de un precio
-  // lo marcaba como precio de compra).
+  // A <div>, not a <label>: the browser forwards a click inside a <label> to its first button (tapping a price's store
+  // marked it as the purchase price).
   const field = (label: string, control: HTMLElement) => {
     const wrap = el('div', 'field');
     wrap.appendChild(el('span', '', label));
@@ -861,9 +861,9 @@ function renderEditor(): void {
 
   field(t.name, input(item.name, (v) => { item.name = v; }));
 
-  // grupo: los del catálogo y los de la lista
+  // group: the catalog's and the list's
   const groupHost = el('div');
-  const groups = new Map<string, string>(); // etiqueta -> nombre
+  const groups = new Map<string, string>(); // label -> name
   groups.set(t.noGroup, '');
   for (const gr of catalog?.groups ?? []) groups.set(`${gr.emoji} ${gr.name}`, gr.name);
   for (const gr of list.groups) if (![...groups.values()].some((n) => norm(n) === norm(gr.name))) groups.set(`${gr.emoji} ${gr.name}`, gr.name);
@@ -881,7 +881,7 @@ function renderEditor(): void {
   };
   field(t.group, groupHost);
 
-  // cantidad y unidad
+  // quantity and unit
   const qtyRow = el('div', 'row');
   qtyRow.appendChild(input(item.qty == null ? '' : String(item.qty), (v) => { item.qty = parseNum(v); updateCost(); }, { inputMode: 'decimal', className: 'qty' }));
   const unitHost = el('div');
@@ -891,7 +891,7 @@ function renderEditor(): void {
   qtyRow.appendChild(unitHost);
   field(t.quantity, qtyRow);
 
-  // Fase 9l: la tienda donde se compra (o se compró) y si paga impuestos
+  // Phase 9l: the store where it is (or was) bought, and whether it is taxed
   const shopRow = el('div', 'row');
   const shopHost = el('div');
   const shopPick = createPicker(shopHost, t.shop);
@@ -928,7 +928,7 @@ function renderEditor(): void {
   note.addEventListener('input', () => { item.note = note.value; scheduleSave(); });
   field(t.note, note);
 
-  // fotos
+  // photos
   const photos = el('div', 'photos');
   item.photos.forEach((name, i) => {
     const thumb = el('button', 'thumb') as HTMLButtonElement;
@@ -941,7 +941,7 @@ function renderEditor(): void {
     photos.appendChild(thumb);
   });
   if (!ro) {
-    // Fase 11f: con cámara (Android), sacar la foto o elegirla de los archivos.
+    // Phase 11f: with a camera (Android), take the photo or pick it from files.
     const sources: [string, boolean][] = hasCamera() ? [[t.addPhotoCamera, true], [t.addPhotoFile, false]] : [[t.addPhoto, false]];
     for (const [label, camera] of sources) {
       const add = el('button', 'thumb add', label) as HTMLButtonElement;
@@ -952,7 +952,7 @@ function renderEditor(): void {
   }
   field(t.photos, photos);
 
-  // precios
+  // prices
   const prices = el('div', 'prices');
   const per = compareUnit(item);
   const best = bestOffer(item);
@@ -963,7 +963,7 @@ function renderEditor(): void {
     add.type = 'button';
     add.onclick = () => {
       const last = item.offers[item.offers.length - 1];
-      // Fase 9l: un precio nuevo, de la tienda donde se está (la de arriba) o la del producto.
+      // Phase 9l: a new price, for the current store (the one at the top) or the item's store.
       item.offers.push({ id: newId(), store: currentShop()?.name ?? item.shop ?? last?.store ?? '', price: null, amount: null, unit: last?.unit ?? item.unit });
       scheduleSave();
       renderEditor();
@@ -977,7 +977,7 @@ function renderEditor(): void {
   field(t.prices, prices);
   updateCost();
 
-  // al pie
+  // footer
   const foot = el('div', 'sheet-foot');
   if (item.group && hasAppData) {
     const known = findGroup(catalog, item.group)?.products.some((p) => norm(p.name) === norm(item.name));
@@ -1018,7 +1018,7 @@ function offerRow(item: ListItem, offer: Offer, per: string, isBest: boolean, is
     i.addEventListener('input', () => { set(parseNum(i.value)); scheduleSave(); updateCost(); });
     return i;
   };
-  // Fase 9l: la tienda de cada precio, de la lista de tiendas (o una nueva).
+  // Phase 9l: each price's store, from the store list (or a new one).
   const storeHost = el('div', 'o-store');
   const storePick = createPicker(storeHost, t.store);
   const names = shopChoices(offer.store);
@@ -1040,7 +1040,7 @@ function offerRow(item: ListItem, offer: Offer, per: string, isBest: boolean, is
   use.type = 'button';
   use.title = t.use;
   use.disabled = ro;
-  // Fase 9l: el precio de compra: la cuenta usa este, y el producto pasa a esa tienda.
+  // Phase 9l: the purchase price: the total uses this one, and the item moves to that store.
   use.onclick = () => { item.chosen = offer.id; if (offer.store) item.shop = offer.store; scheduleSave(); renderEditor(); };
   const unitHost = el('div', 'o-unit');
   const unit = createPicker(unitHost, t.unit);
@@ -1064,7 +1064,7 @@ function offerRow(item: ListItem, offer: Offer, per: string, isBest: boolean, is
   return row;
 }
 
-/** Recalcula, sin redibujar el editor (para no perder el foco al escribir), el precio por cantidad y el estimado. */
+/** Recomputes the unit price and the estimate without redrawing the editor (so typing keeps focus). */
 function updateCost(): void {
   const item = editorItem;
   if (!item) return;
@@ -1088,7 +1088,7 @@ function updateCost(): void {
   }
 }
 
-/** Fase 9l: las tiendas para elegir: las de la app, las de la lista y la actual (aunque ya no exista). */
+/** Phase 9l: the stores to pick from: the app's, the list's and the current one (even if it no longer exists). */
 function shopChoices(current: string): string[] {
   const names: string[] = [];
   const add = (n: string) => { if (n && !names.some((x) => norm(x) === norm(n))) names.push(n); };
@@ -1098,7 +1098,7 @@ function shopChoices(current: string): string[] {
   return names;
 }
 
-// --- fotos ------------------------------------------------------------------------------------------------------------------
+// --- photos -----------------------------------------------------------------------------------------------------------------
 const photoUrls = new Map<string, Promise<string>>();
 const photoUrl = (name: string) => {
   let url = photoUrls.get(name);
@@ -1106,7 +1106,7 @@ const photoUrl = (name: string) => {
   return url;
 };
 
-/** Achica la foto (lado mayor 1600 px, JPEG): una foto de celular pesa varios MB y va dentro del documento. */
+/** Shrinks the photo (long side 1600 px, JPEG): a phone photo weighs several MB and goes inside the document. */
 async function shrink(data: ArrayBuffer): Promise<Blob | ArrayBuffer> {
   try {
     const bitmap = await createImageBitmap(new Blob([data]));
@@ -1118,11 +1118,11 @@ async function shrink(data: ArrayBuffer): Promise<Blob | ArrayBuffer> {
     const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', 0.85));
     return blob && blob.size < data.byteLength ? blob : data;
   } catch {
-    return data; // un formato que el navegador no sabe abrir: tal cual
+    return data; // a format the browser cannot open: keep as is
   }
 }
 
-/** Fase 11f: Docodez con cámara (API 3, Android). */
+/** Phase 11f: Docodez with a camera (API 3, Android). */
 const hasCamera = () => !!ctx.camera && typeof docodez.capturePhoto === 'function';
 
 async function addPhoto(item: ListItem, camera = false): Promise<void> {
@@ -1185,12 +1185,12 @@ $('viewerDelete').onclick = async () => {
   const [name] = item.photos.splice(index, 1);
   photoUrls.delete(name);
   scheduleSave();
-  try { await docodez.deleteAttachment?.(name); } catch { /* ya no estaba */ }
+  try { await docodez.deleteAttachment?.(name); } catch { /* already gone */ }
   if (item.photos.length === 0) closeViewer(); else { viewer.index = Math.min(index, item.photos.length - 1); showPhoto(); }
   renderList();
   if (editorItem === item) renderEditor();
 };
-// deslizar el dedo para pasar de foto
+// swipe to change photo
 let swipeX: number | null = null;
 $('viewer').addEventListener('pointerdown', (e) => { swipeX = e.clientX; });
 $('viewer').addEventListener('pointerup', (e) => {
@@ -1198,8 +1198,8 @@ $('viewer').addEventListener('pointerup', (e) => {
   swipeX = null;
 });
 
-// --- calculadora ------------------------------------------------------------------------------------------------------------
-// Fase 11e: con historia (las últimas 100 cuentas, en los datos de la app: las mismas en todas las listas).
+// --- calculator -------------------------------------------------------------------------------------------------------------
+// Phase 11e: with history (the last 100 calculations, in the app data: the same in every list).
 const calc = createCalculator($('calc'), {
   title: t.calculator, close: t.close, copy: '', history: t.history, historyEmpty: t.historyEmpty, historyClear: t.historyClear, back: t.back,
 }, {
@@ -1214,7 +1214,7 @@ const calc = createCalculator($('calc'), {
 $('calcBtn').onclick = () => calc.toggle();
 $('calcBtn').title = t.calculator;
 
-// --- página de respaldo (búsqueda, lectores sin el plugin) ---------------------------------------------------------------
+// --- fallback page (search, readers without the plugin) ------------------------------------------------------------------
 function preview(): string {
   const parts = [`<h2>🛒 ${esc(ctx.nodeTitle)}</h2>`];
   for (const groupName of groupOrder(list, catalog)) {
@@ -1235,7 +1235,7 @@ function preview(): string {
   return parts.join('');
 }
 
-// --- modo, tema, eventos -------------------------------------------------------------------------------------------------------
+// --- mode, theme, events ------------------------------------------------------------------------------------------------------
 function setEditable(value: boolean): void {
   editable = value;
   document.body.classList.toggle('editable', value);
@@ -1261,7 +1261,7 @@ function renderAll(): void {
 docodez.on('modechange', (p) => setEditable(p.editable));
 docodez.on('themechange', (p) => applyTheme(p.theme));
 docodez.on('appdatachange', async () => {
-  // Otra vista (otra lista, otra pestaña) cambió los catálogos.
+  // Another view (another list, another tab) changed the catalogs.
   if (storeTimer) return;
   store = normalizeStore(await docodez.getAppJSON().catch(() => null), lang);
   catalog = catalogOf(store, list);
@@ -1287,10 +1287,10 @@ document.documentElement.lang = lang;
 
 applyTheme(ctx.theme);
 setEditable(editable);
-// En pantallas anchas el catálogo arranca abierto al costado.
+// On wide screens the catalog starts open on the side.
 if (matchMedia('(min-width: 900px)').matches) openPanel(true);
 
-// Para las pruebas automáticas.
+// For automated tests.
 (window as unknown as Record<string, unknown>).__compras = {
   get list() { return list; }, get store() { return store; }, get catalog() { return catalog; }, manageShops, editSettings,
   addItem, removeItems, openEditor, openViewer, openPanel, saveNow, renderAll, calc,

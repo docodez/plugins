@@ -1,61 +1,61 @@
-# Shopping List / Lista de compras (plugin de Docodez)
+# Shopping List (Docodez plugin)
 
-Una lista de compras en un nodo: productos agrupados como en la tienda, con cantidad, nota, fotos y varios precios (precio
-por kg / L / unidad y el total estimado), y una calculadora. TypeScript sin dependencias, compilado con
-[Vite](https://vite.dev). Guía de plugins: [`doc/04-plugins.md`](../../doc/04-plugins.md). Necesita la **API 2** de Docodez
-(datos de la app); con la API 3 (Fase 11f), la foto de un producto también se saca con la cámara.
+A shopping list in a node: items grouped like in the store, with quantity, note, photos and several prices (price per
+kg / L / unit and the estimated total), plus a calculator. Dependency-free TypeScript, built with
+[Vite](https://vite.dev). Plugin guide: [`doc/04-plugins.md`](../../doc/04-plugins.md). Needs Docodez **API 2**
+(app data); with API 3 (Phase 11f), an item's photo can also be taken with the camera.
 
 ```cmd
-npm install          (o: yarn)
-npm run dev          servidor de desarrollo - abre el navegador, con un window.docodez de prueba (datos en localStorage)
-npm run build        revisa los tipos (tsc) y compila en dist/
-npm run package      compila y arma ..\out\lynza.compras-<versión>.dczp  (lo que se sube a /_admin o se abre con doble clic)
+npm install          (or: yarn)
+npm run dev          dev server - opens the browser, with a test window.docodez (data in localStorage)
+npm run build        type-checks (tsc) and builds into dist/
+npm run package      builds and creates ..\out\lynza.compras-<version>.dczp  (what gets uploaded to /_admin or opened with a double click)
 ```
 
-## Qué se guarda dónde
+## What is stored where
 
-- **La lista va en el nodo** (`docodez.setJSON`): productos con nombre, grupo (nombre y emoji), cantidad y unidad, nota,
-  fotos, marcado, precios. También el nombre del catálogo con que se hizo. Las **fotos son anexos** del nodo
-  (`compras-<producto>-<id>.jpg`, achicadas a 1600 px); al quitar un producto se borran (`deleteAttachment`).
-- **Los catálogos van en la app** (`docodez.setAppJSON`, API 2): los mismos para todas las listas y documentos del usuario
-  (en Docodez Web, en su configuración del servidor). Se puede tener varios (supermercado, ferretería, electrónica...); al
-  crear uno se puede empezar vacío o desde una plantilla (`src/seed.ts`, en inglés, español y francés). La primera vez se
-  crea el del supermercado. Cada producto cuenta cuántas veces se agregó (*Frecuentes*).
-- Como cada producto de la lista lleva su grupo, una lista abierta en otro Docodez se ve igual aunque ese usuario no tenga
-  el catálogo: arriba aparece un aviso para **crear ese catálogo** o **agregar a su catálogo** lo que le falta.
+- **The list goes in the node** (`docodez.setJSON`): items with name, group (name and emoji), quantity and unit, note,
+  photos, checked state, prices. Also the name of the catalog it was made with. **Photos are node attachments**
+  (`compras-<item>-<id>.jpg`, shrunk to 1600 px); removing an item deletes them (`deleteAttachment`).
+- **Catalogs go in the app** (`docodez.setAppJSON`, API 2): the same for all of the user's lists and documents
+  (in Docodez Web, in their server settings). There can be several (grocery, hardware store, electronics...); a new one
+  can start empty or from a template (`src/seed.ts`, in English, Spanish and French). The grocery catalog is created
+  the first time. Each item counts how many times it was added (*Frequent*).
+- Since each list item carries its group, a list opened in another Docodez looks the same even if that user does not
+  have the catalog: a banner at the top offers to **create that catalog** or **add what is missing to their catalog**.
 
-## Tiendas e impuestos (1.1.0)
+## Stores and taxes (1.1.0)
 
-- **Tiendas** (datos de la app, como los catálogos; ⋮ → *Tiendas...* o *+ Tienda nueva...* en la lista de arriba): nombre,
-  emoji, los **catálogos de lo que vende** (una tienda puede tener supermercado y plomería) y su impuesto si es otro que el
-  general. Elegir una tienda arriba hace que lo que se agrega vaya a esa tienda, y pasa el catálogo a uno de los suyos.
-- Cada producto tiene **tienda** (dónde se piensa comprar). Cada **precio** es de una tienda; el elegido como **precio de
-  compra** (●) es el que usa la cuenta y pasa el producto a esa tienda ("lo vi más barato en otra: lo compro ahí"). Marcar
-  un producto como comprado guarda el precio de compra (el elegido, o el más barato) y su tienda.
-- ⋮ → *Ver por tienda*: la lista agrupada por tienda (cada producto con el emoji de su grupo), con lo que cuesta en cada
-  una: subtotal + impuestos = total. *Ver por grupo* vuelve como antes (con la tienda de cada producto en gris).
-- **Impuestos**: ⋮ → *Ajustes* (impuesto general en %, la moneda). Cada grupo del catálogo paga o no (en las plantillas la
-  comida no paga; un catálogo de antes se completa igual) y un producto puede ser distinto que su grupo (*Editar* el
-  catálogo). Al agregar un producto a la lista se copia si paga (viaja con la lista) y se puede cambiar en su editor. Al pie:
-  subtotal + impuestos = total, y el carro con impuestos.
-- La lista guarda los nombres de sus tiendas (como los grupos): se entiende en otro Docodez. Cambiar el nombre de una
-  tienda lo cambia también en la lista abierta.
+- **Stores** (app data, like catalogs; ⋮ → *Stores...* or *+ New store...* in the list at the top): name,
+  emoji, the **catalogs of what it sells** (a store can have grocery and plumbing) and its tax if different from the
+  general one. Picking a store at the top makes new items go to that store, and switches the catalog to one of its own.
+- Each item has a **store** (where it will be bought). Each **price** belongs to a store; the one chosen as **purchase
+  price** (●) is the one the total uses, and it moves the item to that store ("I saw it cheaper at another one: I'll buy
+  it there"). Checking an item as bought saves the purchase price (the chosen one, or the cheapest) and its store.
+- ⋮ → *View by store*: the list grouped by store (each item with its group's emoji), with what it costs at each
+  one: subtotal + tax = total. *View by group* goes back to the previous view (with each item's store in gray).
+- **Taxes**: ⋮ → *Settings* (general tax in %, currency). Each catalog group is taxed or not (in the templates food
+  is not; an older catalog gets filled in the same way) and an item can differ from its group (*Edit* the
+  catalog). When an item is added to the list, its taxable flag is copied (it travels with the list) and can be changed
+  in its editor. At the bottom: subtotal + tax = total, and the cart with tax.
+- The list keeps the names of its stores (like the groups), so it makes sense in another Docodez. Renaming a store
+  also renames it in the open list.
 
-## Archivos
+## Files
 
-- `src/model.ts`: los datos (lista y catálogos), buscar, unidades y precios: cada oferta (tienda, precio, cantidad, unidad)
-  se pasa a precio por kg / L / m / unidad para compararlas (la más barata se marca); el estimado de un producto es la
-  oferta elegida (o la más barata) por la cantidad pedida, convirtiendo unidades (g/kg/lb/oz, ml/L/gal/fl oz, cm/m/ft,
-  unidad/docena); sin unidad, la cantidad es de paquetes.
-- `src/main.ts`: la pantalla. Agregar escribiendo (con sugerencias del catálogo; "2 kg tomates", "leche x3"), el panel del
-  catálogo (al costado en pantallas anchas, a pantalla completa en el celular; buscar, frecuentes, grupos, *Editar* para
-  agregar / cambiar / borrar grupos y productos), el editor del producto, el visor de fotos (el 📎 de la fila), el menú
-  (ocultar los marcados, desmarcar todo, quitar los marcados, moneda, vaciar) y la página de respaldo (la lista en HTML).
-- `src/calc.ts`: la calculadora de la barra (analizador propio, sin `eval`; `200+10%` = 220). Fase 11e: se mueve arrastrando
-  su barra de título y tiene historia (las últimas 100 cuentas, en `calcHistory` de los datos de la app).
-- `src/i18n.ts`: los textos (es / en / fr). `src/seed.ts`: las plantillas de los catálogos.
+- `src/model.ts`: the data (list and catalogs), search, units and prices: each offer (store, price, quantity, unit)
+  is converted to a price per kg / L / m / unit to compare them (the cheapest is marked); an item's estimate is the
+  chosen offer (or the cheapest) times the requested quantity, converting units (g/kg/lb/oz, ml/L/gal/fl oz, cm/m/ft,
+  unit/dozen); with no unit, the quantity counts packages.
+- `src/main.ts`: the UI. Adding by typing (with catalog suggestions; "2 kg tomates", "leche x3"), the catalog
+  panel (on the side on wide screens, full screen on phones; search, frequent items, groups, *Edit* to add / change /
+  delete groups and items), the item editor, the photo viewer (the row's 📎), the menu (hide checked items, uncheck
+  all, remove checked items, currency, clear) and the fallback page (the list as HTML).
+- `src/calc.ts`: the toolbar calculator (its own parser, no `eval`; `200+10%` = 220). Phase 11e: it moves by dragging
+  its title bar and has a history (the last 100 calculations, in `calcHistory` in the app data).
+- `src/i18n.ts`: the UI texts (es / en / fr). `src/seed.ts`: the catalog templates.
 
-## Modo vista
+## View mode
 
-Marcar y cambiar la lista necesita el modo edición de Docodez (como cualquier cambio del documento). Los catálogos se pueden
-cambiar siempre: no son del documento.
+Checking items and changing the list needs Docodez edit mode (like any change to the document). Catalogs can always be
+changed: they are not part of the document.

@@ -1,6 +1,6 @@
-// Los textos de la pantalla (el idioma sale de docodez.context.language).
+// UI texts (the language comes from docodez.context.language).
 const es = {
-  // Fase 9l: tiendas e impuestos
+  // Phase 9l: stores and taxes
   shop: 'Tienda', shops: 'Tiendas', noShop: '(sin tienda)', newShop: '+ Tienda nueva...', editShop: 'Tienda', shopName: 'Nombre de la tienda:',
   shopCatalogs: 'Catálogos de lo que vende:', shopTax: (r: number) => `Impuesto de esta tienda en % (vacío: el general, ${r} %):`,
   noShops: 'Todavía no hay tiendas.', confirmDeleteShop: (n: string) => `¿Borrar la tienda «${n}»? (Las listas no cambian.)`,
@@ -14,7 +14,7 @@ const es = {
   hideDone: 'Ocultar los marcados', showDone: 'Mostrar los marcados', uncheckAll: 'Desmarcar todo', removeDone: 'Quitar los marcados',
   confirmRemoveDone: (n: number) => `¿Quitar ${n} producto${n === 1 ? '' : 's'} marcado${n === 1 ? '' : 's'} de la lista?`, currency: 'Moneda...',
   currencyPrompt: 'Símbolo de la moneda:', clearList: 'Vaciar la lista', confirmClear: '¿Quitar todos los productos de la lista?',
-  // catálogo
+  // catalog
   catalogs: 'Catálogos', newCatalog: 'Nuevo catálogo...', renameCatalog: 'Cambiar el nombre...', deleteCatalog: 'Borrar este catálogo',
   confirmDeleteCatalog: (n: string) => `¿Borrar el catálogo «${n}»? (Las listas no cambian.)`, catalogName: 'Nombre del catálogo:',
   template: 'Empezar con:', templateEmpty: 'Vacío', create: 'Crear', cancel: 'Cancelar', ok: 'Aceptar', close: 'Cerrar', delete: 'Borrar',
@@ -26,7 +26,7 @@ const es = {
   addMissing: 'Agregarlos al catálogo', missingCatalog: (c: string) => `Esta lista es del catálogo «${c}», que no tienes.`,
   createCatalog: 'Crear ese catálogo', dismiss: 'Ahora no', added: (n: string) => `«${n}» agregado`, alreadyIn: (n: string) => `«${n}» ya está: +1`,
   addTo: (n: string) => `Agregar «${n}»`, newProductIn: 'Agregar al catálogo en...',
-  // producto
+  // item
   editItem: 'Producto', name: 'Nombre', group: 'Grupo', quantity: 'Cantidad', note: 'Nota', notePlaceholder: 'Marca, tamaño, detalles...',
   photos: 'Fotos', addPhoto: '+ Foto', addPhotoCamera: '📷 Cámara', addPhotoFile: '🖼️ Archivo', prices: 'Precios', addPrice: '+ Precio', store: 'Tienda', price: 'Precio', amount: 'Cant.',
   perUnit: 'por', best: 'el mejor', use: 'Precio de compra (la cuenta usa este)', estimated: 'Estimado', removeItem: 'Quitar de la lista',

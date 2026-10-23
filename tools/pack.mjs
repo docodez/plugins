@@ -1,7 +1,7 @@
-// Fase 8l: arma el paquete .dczp de un plugin (un .zip por dentro) a partir de una carpeta (dist/ de Vite, o la carpeta
-// del plugin si no se compila). Sin dependencias: Node 22+ (zlib.crc32).
-//   node pack.mjs <carpeta> [salida]      ->  <salida>/<id>-<version>.dczp  (salida por defecto: plugins/out)
-// Revisa lo mismo que Docodez al instalar: docodez-plugin.json con id/name/version válidos y la página de entrada.
+// Phase 8l: builds a plugin's .dczp package (a .zip inside) from a folder (Vite's dist/, or the plugin folder if it is
+// not built). No dependencies: Node 22+ (zlib.crc32).
+//   node pack.mjs <folder> [output]      ->  <output>/<id>-<version>.dczp  (default output: plugins/out)
+// It runs the same checks as Docodez on install: docodez-plugin.json with a valid id/name/version, and the entry page.
 import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync, existsSync } from 'node:fs';
 import { join, relative, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -13,16 +13,16 @@ const outDir = resolve(process.argv[3] ?? join(here, '..', 'out'));
 
 const fail = (message) => { console.error('pack: ' + message); process.exit(1); };
 const manifestPath = join(source, 'docodez-plugin.json');
-if (!existsSync(manifestPath)) fail(`no está ${manifestPath}`);
+if (!existsSync(manifestPath)) fail(`missing ${manifestPath}`);
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-if (!/^[a-z0-9][a-z0-9._-]{1,63}$/.test(manifest.id ?? '') || manifest.id.includes('..')) fail('"id" inválido');
-if (!manifest.name?.trim()) fail('falta "name"');
-if (!/^\d{1,6}(\.\d{1,6}){0,3}$/.test(manifest.version ?? '')) fail('"version" inválida (por ejemplo 1.0.0)');
+if (!/^[a-z0-9][a-z0-9._-]{1,63}$/.test(manifest.id ?? '') || manifest.id.includes('..')) fail('invalid "id"');
+if (!manifest.name?.trim()) fail('missing "name"');
+if (!/^\d{1,6}(\.\d{1,6}){0,3}$/.test(manifest.version ?? '')) fail('invalid "version" (for example 1.0.0)');
 const entry = manifest.entry ?? 'index.html';
-// Un plugin solo de AI (sección "ai") no tiene página (Docodez lo acepta así).
-if (!manifest.ai && !existsSync(join(source, entry))) fail(`no está la página de entrada ${entry}`);
+// An AI-only plugin ("ai" section) has no page (Docodez accepts that).
+if (!manifest.ai && !existsSync(join(source, entry))) fail(`missing entry page ${entry}`);
 
-// Todos los archivos (sin mapas de fuentes: no hacen falta en el plugin instalado).
+// All files (without source maps: the installed plugin does not need them).
 const files = [];
 (function walk(dir) {
   for (const name of readdirSync(dir)) {
@@ -32,7 +32,7 @@ const files = [];
   }
 })(source);
 
-// ZIP mínimo (deflate, sin cifrado ni zip64): cabecera local + datos por archivo, directorio central al final.
+// Minimal ZIP (deflate, no encryption or zip64): local header + data per file, central directory at the end.
 const chunks = [];
 const central = [];
 let offset = 0;
@@ -68,4 +68,4 @@ end.writeUInt32LE(centralSize, 12); end.writeUInt32LE(offset, 16);
 mkdirSync(outDir, { recursive: true });
 const target = join(outDir, `${manifest.id}-${manifest.version}.dczp`);
 writeFileSync(target, Buffer.concat([...chunks, ...central, end]));
-console.log(`Listo: ${target} (${files.length} archivos, ${(statSync(target).size / 1024).toFixed(0)} KB)`);
+console.log(`Done: ${target} (${files.length} files, ${(statSync(target).size / 1024).toFixed(0)} KB)`);

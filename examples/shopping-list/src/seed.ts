@@ -1,7 +1,7 @@
-// Catálogos iniciales (plantillas) en inglés, español y francés. Cada producto es "en|es|fr" y opcionalmente "@unidad"
-// (la unidad con que se suele comprar). El primero (supermercado) se crea solo la primera vez; los otros se ofrecen al
-// crear un catálogo nuevo. Los grupos del supermercado siguen las secciones típicas de una lista de compras impresa
-// (frutas, verduras, carne, panadería, repostería, pasta y arroz, enlatados...).
+// Starter catalogs (templates) in English, Spanish and French. Each item is "en|es|fr" and optionally "@unit"
+// (the unit it is usually bought in). The first one (grocery) is created automatically the first time; the others are
+// offered when creating a new catalog. The grocery groups follow the usual sections of a printed shopping list
+// (fruits, vegetables, meat, bakery, baking, pasta and rice, canned goods...).
 
 export type Lang = 'en' | 'es' | 'fr';
 const IDX: Record<Lang, number> = { en: 0, es: 1, fr: 2 };
@@ -9,7 +9,7 @@ const IDX: Record<Lang, number> = { en: 0, es: 1, fr: 2 };
 interface SeedGroup { emoji: string; name: string; products: string[]; taxable: boolean }
 interface Seed { emoji: string; name: string; groups: SeedGroup[] }
 
-/** Un grupo. Fase 9l: <taxable> = paga impuestos (la comida no, en casi todos lados). */
+/** A group. Phase 9l: <taxable> = it is taxed (food is not, almost everywhere). */
 const g = (emoji: string, name: string, products: string[], taxable = true): SeedGroup => ({ emoji, name, products, taxable });
 const food = (emoji: string, name: string, products: string[]) => g(emoji, name, products, false);
 
@@ -141,7 +141,7 @@ const pick = (text: string, lang: Lang) => {
   return (parts[IDX[lang]] || parts[0]).trim();
 };
 
-/** El catálogo de una plantilla en un idioma: { emoji, name, groups: [{ emoji, name, products: [{ name, unit }] }] }. */
+/** A template's catalog in one language: { emoji, name, groups: [{ emoji, name, products: [{ name, unit }] }] }. */
 export function seedCatalog(id: SeedId, lang: Lang) {
   const seed = SEEDS[id];
   return {
@@ -159,9 +159,9 @@ export function seedCatalog(id: SeedId, lang: Lang) {
   };
 }
 
-/** Fase 9l: los nombres (en los tres idiomas) de los grupos de comida, sin impuestos: para los catálogos creados antes. */
+/** Phase 9l: the names (in the three languages) of the untaxed food groups: for catalogs created before. */
 export const FOOD_GROUPS = new Set(Object.values(SEEDS).flatMap((seed) => seed.groups.filter((gr) => !gr.taxable)
   .flatMap((gr) => gr.name.split('|').map((n) => n.trim().toLocaleLowerCase()))));
 
-/** El nombre de una plantilla en un idioma. */
+/** A template's name in one language. */
 export const seedName = (id: SeedId, lang: Lang) => pick(SEEDS[id].name, lang);

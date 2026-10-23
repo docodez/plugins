@@ -1,13 +1,13 @@
-// Las páginas (layout.ts) dibujadas en SVG (vista previa y página web), en un canvas (imagen PNG) y en PDF. El PDF se
-// escribe acá mismo, sin bibliotecas: texto de verdad con Helvetica (se puede seleccionar y buscar), el logo con su
-// transparencia, comprimido con el deflate del navegador.
+// The pages (layout.ts) drawn as SVG (preview and web page), on a canvas (PNG image) and as PDF. The PDF is written
+// right here, with no libraries: real text in Helvetica (it can be selected and searched), the logo with its
+// transparency, compressed with the browser's deflate.
 import { type Op, type Page, measure } from './layout';
 
 const FONT = 'Helvetica, Arial, sans-serif';
 const escXml = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
 const anchor = (a?: string) => (a === 'right' ? 'end' : a === 'center' ? 'middle' : 'start');
 
-/** Una página en SVG (con viewBox en puntos: se escala sola). */
+/** A page as SVG (viewBox in points: it scales by itself). */
 export function pageSvg(p: Page): string {
   const parts = [`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${p.w} ${p.h}" width="${p.w}" height="${p.h}" font-family="${FONT}">`,
     `<rect width="${p.w}" height="${p.h}" fill="#ffffff"/>`];
@@ -26,7 +26,7 @@ export function pageSvg(p: Page): string {
   return parts.join('');
 }
 
-/** La factura como página web (para mandar o abrir en el navegador; se imprime una hoja por página). */
+/** The invoice as a web page (to send or open in a browser; prints one sheet per page). */
 export function invoiceHtml(pages: Page[], title: string, lang: string): string {
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${escXml(title)}</title><style>
@@ -52,7 +52,7 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
   return p;
 }
 
-/** Dibuja una página en un canvas (scale = píxeles por punto). */
+/** Draws a page on a canvas (scale = pixels per point). */
 async function drawPage(g: CanvasRenderingContext2D, p: Page, top: number): Promise<void> {
   g.fillStyle = '#ffffff';
   g.fillRect(0, top, p.w, p.h);
@@ -76,12 +76,12 @@ async function drawPage(g: CanvasRenderingContext2D, p: Page, top: number): Prom
       g.textBaseline = 'alphabetic';
       g.fillText(o.text, o.x, top + o.y);
     } else {
-      try { g.drawImage(await loadImage(o.src), o.x, top + o.y, o.w, o.h); } catch { /* sin logo */ }
+      try { g.drawImage(await loadImage(o.src), o.x, top + o.y, o.w, o.h); } catch { /* no logo */ }
     }
   }
 }
 
-/** Todas las páginas en una imagen PNG (una debajo de la otra), a <scale> píxeles por punto. */
+/** All the pages in one PNG image (one below the other), at <scale> pixels per point. */
 export async function invoicePng(pages: Page[], scale = 2): Promise<Blob> {
   const gap = 12;
   const w = Math.max(...pages.map((p) => p.w));
@@ -105,7 +105,7 @@ async function deflate(data: Uint8Array): Promise<Uint8Array> {
   return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
-/** Unicode → WinAnsi (la codificación de Helvetica en PDF): lo latino entra; lo demás, "?". */
+/** Unicode → WinAnsi (the Helvetica encoding in PDF): Latin characters work; anything else becomes "?". */
 const WIN: Record<string, number> = {
   '€': 0x80, '‚': 0x82, 'ƒ': 0x83, '„': 0x84, '…': 0x85, '†': 0x86, '‡': 0x87, 'ˆ': 0x88, '‰': 0x89, 'Š': 0x8a, '‹': 0x8b, 'Œ': 0x8c,
   'Ž': 0x8e, '‘': 0x91, '’': 0x92, '“': 0x93, '”': 0x94, '•': 0x95, '–': 0x96, '—': 0x97, '˜': 0x98, '™': 0x99, 'š': 0x9a, '›': 0x9b,
@@ -127,7 +127,7 @@ const rgb = (hex: string) => {
 };
 const f = (v: number) => (Math.round(v * 100) / 100).toString();
 
-/** Un rectángulo con esquinas redondeadas como trayecto de PDF (curvas de Bézier). */
+/** A rounded rectangle as a PDF path (Bézier curves). */
 function roundRectPath(x: number, y: number, w: number, h: number, r: number): string {
   const k = 0.5523 * r;
   return [`${f(x + r)} ${f(y)} m`, `${f(x + w - r)} ${f(y)} l`, `${f(x + w - r + k)} ${f(y)} ${f(x + w)} ${f(y + r - k)} ${f(x + w)} ${f(y + r)} c`,
@@ -136,10 +136,10 @@ function roundRectPath(x: number, y: number, w: number, h: number, r: number): s
     `${f(x)} ${f(y + r)} l`, `${f(x)} ${f(y + r - k)} ${f(x + r - k)} ${f(y)} ${f(x + r)} ${f(y)} c`, 'h'].join(' ');
 }
 
-/** La factura en PDF. */
+/** The invoice as PDF. */
 export async function invoicePdf(pages: Page[], title: string): Promise<Uint8Array> {
   const enc = new TextEncoder();
-  const objects: (Uint8Array | string)[] = []; // índice = número de objeto - 1
+  const objects: (Uint8Array | string)[] = []; // index = object number - 1
   const add = (o: Uint8Array | string) => { objects.push(o); return objects.length; };
   const stream = (dict: string, data: Uint8Array) => {
     const head = enc.encode(`${dict.replace(/>>$/, '')} /Length ${data.length} >>\nstream\n`);
@@ -154,7 +154,7 @@ export async function invoicePdf(pages: Page[], title: string): Promise<Uint8Arr
   const font = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
   const fontBold = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
 
-  // Las imágenes (una vez cada una): RGB + transparencia aparte (SMask), comprimidas.
+  // The images (once each): RGB + separate transparency (SMask), compressed.
   const imageNames = new Map<string, string>();
   const imageRefs: string[] = [];
   for (const src of new Set(pages.flatMap((p) => p.ops.filter((o): o is Extract<Op, { t: 'img' }> => o.t === 'img').map((o) => o.src)))) {
@@ -181,7 +181,7 @@ export async function invoicePdf(pages: Page[], title: string): Promise<Uint8Arr
       const name = `Im${imageNames.size + 1}`;
       imageNames.set(src, name);
       imageRefs.push(`/${name} ${ref} 0 R`);
-    } catch { /* una imagen que no se pudo leer: no va */ }
+    } catch { /* an image that could not be read is left out */ }
   }
 
   const kids: number[] = [];
@@ -213,7 +213,7 @@ export async function invoicePdf(pages: Page[], title: string): Promise<Uint8Arr
   objects[pagesObj - 1] = `<< /Type /Pages /Kids [${kids.map((k) => `${k} 0 R`).join(' ')}] /Count ${kids.length} >>`;
   const info = add(`<< /Title <FEFF${[...title].map((c) => c.charCodeAt(0).toString(16).padStart(4, '0')).join('')}> /Producer (Docodez) >>`);
 
-  // Armar el archivo con la tabla de posiciones (xref).
+  // Build the file with the offset table (xref).
   const chunks: Uint8Array[] = [enc.encode('%PDF-1.4\n%âãÏÓ\n')];
   let offset = chunks[0].length;
   const offsets: number[] = [];

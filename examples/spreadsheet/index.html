@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hojas de cálculo</title>
-  <!-- Vite compila src/main.ts (TypeScript + SheetJS) en un único archivo en dist/assets. -->
+  <title>Spreadsheets</title>
+  <!-- Vite builds src/main.ts (TypeScript + SheetJS) into a single file in dist/assets. -->
   <script type="module" src="/src/main.ts"></script>
 </head>
 <body>
@@ -19,7 +19,7 @@
     <input id="formula" autocomplete="off" spellcheck="false">
   </div>
   <main id="view">
-    <!-- La grilla (grid.ts) reemplaza todo lo de adentro de #sheet: el aviso de "sin archivos" va aparte. -->
+    <!-- The grid (grid.ts) replaces everything inside #sheet: the "no files" notice goes outside it. -->
     <div id="sheet"></div>
     <div id="empty"></div>
   </main>

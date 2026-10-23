@@ -1,8 +1,8 @@
-// Hojas de cálculo - plugin de Docodez (ver doc/04-plugins.md). TypeScript + SheetJS, compilado con Vite.
-// Las planillas son archivos anexos al nodo (CSV, Excel .xlsx/.xls, LibreOffice .ods; se pueden anexar varios y se elige
-// cuál ver arriba). Se ven y se editan las celdas; las hojas del libro son pestañas abajo. Cada cambio se guarda en el
-// mismo anexo, en su formato. Los datos del plugin (JSON) guardan qué archivo y qué hoja se estaban viendo; la página de
-// respaldo del nodo lleva la hoja como tabla (la indexa la búsqueda).
+// Spreadsheets - Docodez plugin (see doc/04-plugins.md). TypeScript + SheetJS, built with Vite.
+// Spreadsheets are files attached to the node (CSV, Excel .xlsx/.xls, LibreOffice .ods; several can be attached and the
+// one to view is picked at the top). Cells can be viewed and edited; the workbook's sheets are tabs at the bottom. Each
+// change is saved to the same attachment, in its format. The plugin data (JSON) stores which file and sheet were being
+// viewed; the node's fallback page holds the sheet as a table (indexed by search).
 import type { DocodezContext } from '../../../sdk/docodez';
 import { installDevDocodez } from '../../../sdk/docodez-dev';
 import { createPicker } from '../../../sdk/picker';
@@ -10,7 +10,7 @@ import { FILE_TYPES, type Book, XLSX, addSheet, display, isSheetFile, load, mult
 import { Grid } from './grid';
 import './style.css';
 
-// Fuera de Docodez (npm run dev) un window.docodez de prueba. En el plugin compilado esto no está.
+// Outside Docodez (npm run dev), a test window.docodez. Not included in the built plugin.
 if (import.meta.env.DEV) installDevDocodez('lynza.hojas');
 
 const TEXT = {
@@ -37,7 +37,7 @@ const TEXT = {
   },
 };
 
-/** Lo que el plugin guarda en el nodo. */
+/** What the plugin stores in the node. */
 interface SheetState {
   file: string | null;
   sheet: number;
@@ -55,7 +55,7 @@ let dirty = false;
 let saveTimer = 0;
 const status = (text: string) => { $('status').textContent = text; };
 
-// --- grilla y barra de fórmulas --------------------------------------------------------------------------------------
+// --- grid and formula bar ---------------------------------------------------------------------------------------------
 const formula = $<HTMLInputElement>('formula');
 formula.title = t.formula;
 const grid = new Grid($('sheet'), {
@@ -79,11 +79,11 @@ formula.addEventListener('keydown', (e) => {
     e.preventDefault();
     $('sheet').focus();
     const { r, c } = grid.selection;
-    grid.select(r, c); // vuelve a mostrar el valor de la celda
+    grid.select(r, c); // show the cell value again
   }
 });
 
-// --- archivos ------------------------------------------------------------------------------------------------------
+// --- files ---------------------------------------------------------------------------------------------------------
 const filePicker = createPicker($('file'), t.file);
 filePicker.onchange = (name) => void openFile(name);
 
@@ -138,7 +138,7 @@ function showEmpty(empty: boolean): void {
   $('formulaBar').style.visibility = empty ? 'hidden' : '';
 }
 
-/** Agrega (o reemplaza) un archivo y lo abre. */
+/** Adds (or replaces) a file and opens it. */
 async function addFile(name: string, data: ArrayBuffer): Promise<void> {
   await flush();
   await docodez.putAttachment(name, data);
@@ -153,7 +153,7 @@ async function uniqueName(base: string, extension: string): Promise<string> {
   return name;
 }
 
-// --- pestañas de las hojas -----------------------------------------------------------------------------------------
+// --- sheet tabs ----------------------------------------------------------------------------------------------------
 let confirmingDelete = -1;
 
 function renderTabs(): void {
@@ -244,7 +244,7 @@ function startRename(tab: HTMLElement, i: number): void {
   input.onblur = () => finish(true);
 }
 
-// --- guardar en el nodo ----------------------------------------------------------------------------------------------
+// --- save to the node -----------------------------------------------------------------------------------------------
 function changed(): void {
   dirty = true;
   saveLater();
@@ -282,7 +282,7 @@ async function saveNow(): Promise<void> {
   }
 }
 
-/** La página de respaldo: la hoja que se está viendo como tabla (la indexa la búsqueda; la ve un Docodez sin el plugin). */
+/** The fallback page: the current sheet as a table (indexed by search; shown by a Docodez without the plugin). */
 function preview(): string {
   const ws = currentSheet();
   let table = '';
@@ -303,7 +303,7 @@ function preview(): string {
   return `<h2>${esc(ctx.nodeTitle)}</h2><p>${esc(t.file)}: ${esc(state.file ?? '-')}${sheetName ? ' · ' + esc(sheetName) : ''}</p>${table}`;
 }
 
-// --- interfaz ----------------------------------------------------------------------------------------------------------
+// --- UI ----------------------------------------------------------------------------------------------------------------
 $('open').textContent = t.open;
 $('new').textContent = t.newBook;
 $('open').onclick = async () => {
@@ -315,7 +315,7 @@ $('new').onclick = async () => {
   await addFile(name, save(newBook(t.sheet + '1')));
 };
 
-// Soltar un archivo sobre la hoja (modo edición).
+// Drop a file on the sheet (edit mode).
 const sheetArea = $('sheet');
 sheetArea.addEventListener('dragover', (e) => {
   if (ctx.editable) {
@@ -347,7 +347,7 @@ function applyTheme(theme: 'light' | 'dark'): void {
 
 docodez.on('modechange', (p) => setEditable(p.editable));
 docodez.on('themechange', (p) => applyTheme(p.theme));
-// Que no quede nada sin guardar si se cierra o se cambia de nodo enseguida después de escribir.
+// Make sure nothing is left unsaved if the page closes or the node changes right after typing.
 window.addEventListener('pagehide', () => void flush());
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') void flush(); });
 
@@ -355,7 +355,7 @@ applyTheme(ctx.theme);
 setEditable(ctx.editable);
 await openFile(await refreshFiles(state.file), state.sheet);
 
-// Para las pruebas automáticas.
+// For automated tests.
 (window as unknown as { __hojas: unknown }).__hojas = {
   get book() { return book; },
   get state() { return state; },

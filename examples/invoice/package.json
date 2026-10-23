@@ -2,7 +2,7 @@
   "name": "docodez-invoice",
   "private": true,
   "version": "1.0.0",
-  "description": "Plugin de Docodez: facturas para negocios pequeños (plantillas, columnas a medida, impuestos, logo; compartir como PDF, imagen o página). Compilado con Vite.",
+  "description": "Docodez plugin: invoices for small businesses (templates, custom columns, taxes, logo; share as PDF, image or web page). Built with Vite.",
   "type": "module",
   "scripts": {
     "dev": "vite",

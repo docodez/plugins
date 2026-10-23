@@ -1,10 +1,9 @@
-// Marcas y modelos por año, y leer un VIN: la base pública de la NHTSA (vPIC, de EE. UU.: gratis, sin cuenta, permite
-// pedidos desde cualquier página). Es solo una ayuda para escribir: el nombre del carro siempre se puede poner a mano, y
-// sin internet no pasa nada.
+// Makes and models by year, and VIN decoding: the public NHTSA database (vPIC, US: free, no account, allows requests from
+// any page). It's only a typing aid: the car's name can always be entered by hand, and nothing breaks without internet.
 
 const API = 'https://vpic.nhtsa.dot.gov/api/vehicles/';
 
-/** Las marcas más comunes (para sugerir sin pedir nada: la lista completa de vPIC tiene miles). */
+/** The most common makes (to suggest without a request: the full vPIC list has thousands). */
 export const MAKES = [
   'Acura', 'Alfa Romeo', 'Aston Martin', 'Audi', 'Bentley', 'BMW', 'Buick', 'BYD', 'Cadillac', 'Chery', 'Chevrolet', 'Chrysler',
   'Citroën', 'Cupra', 'Dacia', 'Daewoo', 'Daihatsu', 'Dodge', 'Ferrari', 'Fiat', 'Ford', 'Genesis', 'Geely', 'GMC', 'Great Wall',
@@ -23,7 +22,7 @@ async function get(path: string, signal?: AbortSignal): Promise<Record<string, u
   return data.Results ?? [];
 }
 
-/** Los modelos de una marca en un año (vacío si no se sabe o no hay conexión). */
+/** A make's models for a year (empty if unknown or offline). */
 export async function modelsFor(make: string, year: string, signal?: AbortSignal): Promise<string[]> {
   const y = /^\d{4}$/.test(year.trim()) ? year.trim() : '';
   if (!make.trim()) return [];
@@ -43,7 +42,7 @@ export async function modelsFor(make: string, year: string, signal?: AbortSignal
 
 export interface VinInfo { make: string; model: string; year: string; trim: string; fuelType: string; engine: string; body: string }
 
-/** Lo que dice un VIN (17 caracteres), o null si no se pudo leer. */
+/** What a VIN (17 characters) decodes to, or null if it couldn't be read. */
 export async function decodeVin(vin: string): Promise<VinInfo | null> {
   const v = vin.trim().toUpperCase();
   if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(v)) return null;

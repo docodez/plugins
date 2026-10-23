@@ -1,23 +1,23 @@
-// Los datos de una factura (van en el nodo) y del negocio (van en la app: los mismos para todas las facturas), y las
-// cuentas. Sin DOM: se puede probar suelto.
+// The data of an invoice (stored in the node) and of the business (stored in the app data: the same for every invoice),
+// and the math. No DOM: it can be tested on its own.
 
 export type Lang = 'es' | 'en' | 'fr';
 export type DocKind = 'invoice' | 'quote' | 'receipt';
 export type Status = 'draft' | 'sent' | 'paid';
 export type TemplateId = 'classic' | 'modern' | 'minimal' | 'bold';
 export type PageSize = 'letter' | 'a4';
-/** Qué es una columna: texto libre, un número, o una de las que entran en la cuenta del importe. */
+/** What a column holds: free text, a number, or one of the values used to compute the line amount. */
 export type ColumnKind = 'text' | 'number' | 'date' | 'qty' | 'price' | 'discount' | 'amount';
 
 export interface Column { id: string; kind: ColumnKind; label: string }
 export interface Item { id: string; cells: Record<string, string>; taxable: boolean }
-/** Un impuesto: nombre (GST, IVA...), porcentaje, y el número de registro si va impreso al lado (opcional). */
+/** A tax: name (GST, VAT...), rate, and the registration number if it is printed next to it (optional). */
 export interface Tax { id: string; name: string; rate: number }
 export interface TaxId { label: string; number: string }
 
 export interface Business {
   name: string; address: string; phone: string; email: string; website: string; country: string;
-  /** El logo (data: URL, achicado), o null. */
+  /** The logo (downscaled data: URL), or null. */
   logo: string | null;
   taxIds: TaxId[];
 }
@@ -27,7 +27,7 @@ export interface Client { name: string; company: string; address: string; email:
 export interface Invoice {
   version: 1; kind: DocKind; number: string; date: string; dueDate: string; status: Status; language: Lang; currency: string;
   template: TemplateId; accent: string; pageSize: PageSize;
-  /** El negocio tal como estaba al hacer la factura (si después cambia, esta no). */
+  /** The business as it was when the invoice was made (if it changes later, this copy does not). */
   from: Business;
   to: Client;
   columns: Column[]; items: Item[]; taxes: Tax[];
@@ -35,12 +35,12 @@ export interface Invoice {
   paid: number | null; notes: string; terms: string;
 }
 
-/** Los datos de la app: el negocio y lo que se repite en cada factura nueva. */
+/** The app data: the business and what is reused on every new invoice. */
 export interface Profile {
   business: Business; currency: string; taxes: Tax[]; columns: Column[]; template: TemplateId; accent: string; pageSize: PageSize;
   prefix: string; nextNumber: number; dueDays: number; notes: string; terms: string;
   clients: Client[];
-  /** Lo que se facturó antes (para sugerir): descripción y precio. */
+  /** Previously invoiced items (for suggestions): description and price. */
   items: { text: string; price: string }[];
 }
 
@@ -54,10 +54,10 @@ export const addDays = (date: string, days: number): string => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 };
 
-// --- países: cómo se llama el número fiscal, la moneda y los impuestos de siempre -------------------------------------------
+// --- countries: the name of the tax number, the currency and the usual taxes ------------------------------------------------
 export interface Country { code: string; taxIdLabel: string; currency: string; taxes: [string, number][] }
 
-/** Los impuestos son sugerencias (los porcentajes cambian; la persona los revisa). */
+/** The taxes are suggestions (rates change; the user checks them). */
 export const COUNTRIES: Country[] = [
   { code: 'CA', taxIdLabel: 'GST/HST #', currency: 'CAD', taxes: [['GST', 5], ['HST', 13], ['HST', 15], ['QST', 9.975], ['PST', 7], ['PST', 6]] },
   { code: 'US', taxIdLabel: 'EIN', currency: 'USD', taxes: [['Sales tax', 0]] },
@@ -98,7 +98,7 @@ export const COUNTRIES: Country[] = [
 ];
 export const countryOf = (code: string) => COUNTRIES.find((c) => c.code === code) ?? COUNTRIES[COUNTRIES.length - 1];
 
-/** El nombre fiscal en francés en Canadá (las facturas en francés de Quebec). */
+/** The French tax number label in Canada (for French invoices from Quebec). */
 export function taxIdLabelFor(country: string, lang: Lang): string {
   if (country === 'CA' && lang === 'fr') return 'N° TPS/TVH';
   return countryOf(country).taxIdLabel;
@@ -106,7 +106,7 @@ export function taxIdLabelFor(country: string, lang: Lang): string {
 
 export const CURRENCIES = [...new Set(['USD', 'CAD', 'EUR', 'MXN', 'GBP', ...COUNTRIES.map((c) => c.currency)])];
 
-// --- valores por omisión -----------------------------------------------------------------------------------------------------
+// --- defaults ---------------------------------------------------------------------------------------------------------------
 export function defaultColumns(): Column[] {
   return [
     { id: 'desc', kind: 'text', label: '' }, { id: 'qty', kind: 'qty', label: '' },
@@ -118,7 +118,7 @@ export function emptyBusiness(country: string): Business {
   return { name: '', address: '', phone: '', email: '', website: '', country, logo: null, taxIds: [] };
 }
 
-/** El país de la persona, por el idioma del navegador ("es-MX" → MX); si no se sabe, Canadá en francés, EE. UU. en inglés. */
+/** The user's country, from the browser locale ("es-MX" → MX); if unknown, Mexico in Spanish, Canada in French, the US in English. */
 export function guessCountry(locale: string, lang: Lang): string {
   const region = /[-_]([A-Z]{2})\b/i.exec(locale)?.[1]?.toUpperCase();
   if (region && COUNTRIES.some((c) => c.code === region)) return region;
@@ -187,7 +187,7 @@ export function normalizeInvoice(raw: unknown, lang: Lang, country: string): Inv
   };
 }
 
-/** Una factura nueva con lo del negocio (y el número siguiente: quien la crea sube <nextNumber>). */
+/** A new invoice with the business data (and the next number: the caller increments <nextNumber>). */
 export function newInvoice(profile: Profile, lang: Lang): Invoice {
   const date = today();
   return {
@@ -201,9 +201,9 @@ export function newInvoice(profile: Profile, lang: Lang): Invoice {
   };
 }
 
-// --- las cuentas -------------------------------------------------------------------------------------------------------------
+// --- the math ---------------------------------------------------------------------------------------------------------------
 
-/** Un número escrito por la persona ("12,5", "1.234,50", "$1,234.50", "15%"), o null. */
+/** A number typed by the user ("12,5", "1.234,50", "$1,234.50", "15%"), or null. */
 export function parseNum(text: string): number | null {
   const m = /-?\d[\d.,\s]*/.exec(String(text ?? ''));
   if (!m) return null;
@@ -220,8 +220,8 @@ export function parseNum(text: string): number | null {
 export const round2 = (v: number) => Math.round((v + Number.EPSILON) * 100) / 100;
 
 /**
- * El importe de un renglón: cantidad × precio × (1 − descuento %). Sin columna de cantidad, 1; sin columna de precio, lo que
- * se escribió en la de importe. null si no hay con qué calcular.
+ * The amount of a line: quantity × price × (1 − discount %). With no quantity column, 1; with no price column, whatever
+ * was typed in the amount column. null if there is nothing to compute it from.
  */
 export function itemAmount(inv: Pick<Invoice, 'columns'>, item: Item): number | null {
   const col = (k: ColumnKind) => inv.columns.find((c) => c.kind === k);
@@ -253,7 +253,7 @@ export function totals(inv: Invoice): Totals {
   subtotal = round2(subtotal);
   const d = inv.discount.value ?? 0;
   const discount = round2(Math.min(subtotal, Math.max(0, inv.discount.type === 'percent' ? subtotal * d / 100 : d)));
-  // El descuento se reparte: lo que paga impuestos baja en la misma proporción.
+  // The discount is spread out: the taxable part goes down in the same proportion.
   const ratio = subtotal > 0 ? (subtotal - discount) / subtotal : 1;
   const taxable = round2(taxableSub * ratio);
   const taxes = inv.taxes.filter((x) => x.name || x.rate).map((tax) => ({ tax, amount: round2(taxable * tax.rate / 100) }));
@@ -262,7 +262,7 @@ export function totals(inv: Invoice): Totals {
   return { subtotal, discount, taxable, taxes, total, paid, balance: round2(total - paid) };
 }
 
-/** El dinero en el idioma de la factura y su país ("$1,234.50", "1 234,50 $", "1.234,50 €"). */
+/** Money in the invoice language and country format ("$1,234.50", "1 234,50 $", "1.234,50 €"). */
 export function moneyFormat(inv: Pick<Invoice, 'language' | 'currency' | 'from'>): (v: number) => string {
   const locale = `${inv.language}-${inv.from.country && inv.from.country !== 'ZZ' ? inv.from.country : inv.language === 'en' ? 'US' : inv.language.toUpperCase()}`;
   let f: Intl.NumberFormat;
@@ -271,14 +271,14 @@ export function moneyFormat(inv: Pick<Invoice, 'language' | 'currency' | 'from'>
   return (v) => f.format(v).replace(/ | /g, ' ');
 }
 
-/** Guarda un cliente en la libreta (reemplaza el del mismo nombre/empresa). */
+/** Saves a client in the client book (replaces the one with the same name/company). */
 export function rememberClient(profile: Profile, client: Client): void {
   if (!client.name.trim() && !client.company.trim()) return;
   const key = (c: Client) => (c.name.trim() + '|' + c.company.trim()).toLowerCase();
   profile.clients = [structuredClone(client), ...profile.clients.filter((c) => key(c) !== key(client))].slice(0, 200);
 }
 
-/** Recuerda lo facturado (descripción y precio) para sugerirlo. */
+/** Remembers invoiced items (description and price) to suggest them later. */
 export function rememberItems(profile: Profile, inv: Invoice): void {
   const desc = inv.columns.find((c) => c.kind === 'text');
   const price = inv.columns.find((c) => c.kind === 'price');

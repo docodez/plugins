@@ -2,7 +2,7 @@
   "name": "docodez-hojas",
   "private": true,
   "version": "1.0.2",
-  "description": "Plugin de Docodez: hojas de cálculo (CSV, XLSX, XLS, ODS) anexas al nodo, con SheetJS. Compilado con Vite.",
+  "description": "Docodez plugin: spreadsheets (CSV, XLSX, XLS, ODS) attached to the node, using SheetJS. Built with Vite.",
   "type": "module",
   "scripts": {
     "dev": "vite",

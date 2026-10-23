@@ -1,12 +1,12 @@
 import { defineConfig } from 'vite';
 
-// Un plugin de Docodez se sirve desde una carpeta propia (y en Docodez Web, aislado): rutas relativas.
+// A Docodez plugin is served from its own folder (and sandboxed in Docodez Web): relative paths.
 export default defineConfig({
   base: './',
   build: {
     outDir: 'dist',
-    emptyOutDir: true, // limpia dist antes de compilar (lo que hacía parcel-plugin-nuke-dist)
-    target: 'es2022', // await de primer nivel; WebView2 y el WebView de Android (Chromium 89+)
+    emptyOutDir: true, // clean dist before building (what parcel-plugin-nuke-dist used to do)
+    target: 'es2022', // top-level await; WebView2 and the Android WebView (Chromium 89+)
     sourcemap: false,
   },
   server: {

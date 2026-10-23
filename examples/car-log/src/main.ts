@@ -1,9 +1,9 @@
-// Bitácora del carro - plugin de Docodez (ver doc/04-plugins.md y README.md). TypeScript, compilado con Vite.
-// - Todo va en el nodo (docodez.getJSON / setJSON): el carro, la gasolina, las reparaciones, los accesorios, los viajes y
-//   las notas. Fotos, facturas y archivos, como anexos del nodo.
-// - Los datos de la APP solo guardan las unidades preferidas (para el próximo carro).
-// - API 3 (Docodez nuevo): la cámara (capturePhoto) y leer la bomba o el tablero de una foto con la AI (aiExtract). Con un
-//   Docodez anterior, se elige la foto de los archivos y se escribe a mano.
+// Car Log - a Docodez plugin (see doc/04-plugins.md and README.md). TypeScript, built with Vite.
+// - Everything lives in the node (docodez.getJSON / setJSON): the car, fuel, repairs, parts, trips and notes. Photos,
+//   invoices and files are node attachments.
+// - The APP data only keeps the preferred units (for the next car).
+// - API 3 (newer Docodez): the camera (capturePhoto) and reading the pump or dashboard from a photo with AI (aiExtract).
+//   With an older Docodez, the photo is picked from files and values are typed by hand.
 import type { DocodezAiField, DocodezContext } from '../../../sdk/docodez';
 import { installDevDocodez } from '../../../sdk/docodez-dev';
 import { DEFAULT_UNITS, MAINT_PRESETS, PART_KINDS_TEXT, PART_USES, TEXTS } from './i18n';
@@ -39,7 +39,7 @@ const t = TEXTS[lang];
 const kindName = (k: PartKind) => PART_KINDS_TEXT[lang][k];
 let editable = ctx.editable;
 
-// Las unidades de un carro nuevo: las del último que se configuró (datos de la app), si no las del idioma.
+// Units for a new car: those of the last car configured (app data), otherwise the language defaults.
 const hasAppData = typeof docodez.getAppJSON === 'function';
 const appDefaults = (hasAppData ? await docodez.getAppJSON<{ settings?: Partial<Settings> }>().catch(() => null) : null)?.settings;
 let log: CarLog = normalizeLog(await docodez.getJSON().catch(() => null), { ...DEFAULT_UNITS[lang], ...appDefaults });
@@ -51,9 +51,9 @@ const TABS: [Tab, string, string][] = [
   ['parts', '🧰', t.tabParts], ['trips', '🗺️', t.tabTrips], ['notes', '📝', t.tabNotes],
 ];
 let tab: Tab = 'summary';
-try { const saved = localStorage.getItem('carlog.tab') as Tab | null; if (saved && TABS.some(([k]) => k === saved)) tab = saved; } catch { /* sin almacenamiento */ }
+try { const saved = localStorage.getItem('carlog.tab') as Tab | null; if (saved && TABS.some(([k]) => k === saved)) tab = saved; } catch { /* no storage */ }
 
-// --- guardar -------------------------------------------------------------------------------------------------------------
+// --- saving -------------------------------------------------------------------------------------------------------------
 let saveTimer = 0;
 
 async function saveNow(): Promise<void> {
@@ -68,7 +68,7 @@ async function saveNow(): Promise<void> {
   }
 }
 
-// --- avisos y diálogos (prompt/confirm del navegador no andan bien dentro de Docodez) --------------------------------------
+// --- toasts and dialogs (the browser's prompt/confirm don't work well inside Docodez) --------------------------------------
 let toastTimer = 0;
 function toast(text: string): void {
   const box = $('toast');
@@ -80,7 +80,7 @@ function toast(text: string): void {
 
 let modalClose: (() => void) | null = null;
 
-/** Un diálogo chico: un texto, un campo opcional y los botones. Devuelve el texto escrito ('' sin campo), o null. */
+/** A small dialog: a message, an optional input and the buttons. Returns the typed text ('' with no input), or null. */
 function dialog(title: string, opts: { input?: string; okText?: string; danger?: boolean } = {}): Promise<string | null> {
   return new Promise((resolve) => {
     const modal = $('modal');
@@ -110,7 +110,7 @@ function dialog(title: string, opts: { input?: string; okText?: string; danger?:
 }
 const confirmBox = async (text: string, okText = t.ok, danger = false) => (await dialog(text, { okText, danger })) != null;
 
-// --- anexos: fotos y archivos ------------------------------------------------------------------------------------------------
+// --- attachments: photos and files ------------------------------------------------------------------------------------------------
 const IMAGE = /\.(jpe?g|png|webp|gif|bmp|heic|avif)$/i;
 const isImage = (name: string) => IMAGE.test(name);
 const fileUrls = new Map<string, Promise<string>>();
@@ -119,10 +119,10 @@ const fileUrl = (name: string) => {
   if (!url) { url = docodez.attachmentUrl(name); fileUrls.set(name, url); }
   return url;
 };
-/** Fase 11f: Docodez con cámara (API 3, Android). */
+/** Phase 11f: Docodez with a camera (API 3, Android). */
 const hasCamera = () => !!ctx.camera && typeof docodez.capturePhoto === 'function';
 
-/** Achica una foto (lado mayor 1600 px, JPEG): una foto de celular pesa varios MB y va dentro del documento. */
+/** Shrinks a photo (long side 1600 px, JPEG): a phone photo weighs several MB and is stored inside the document. */
 async function shrink(data: ArrayBuffer): Promise<Blob | ArrayBuffer> {
   try {
     const bitmap = await createImageBitmap(new Blob([data]));
@@ -134,13 +134,13 @@ async function shrink(data: ArrayBuffer): Promise<Blob | ArrayBuffer> {
     const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', 0.85));
     return blob && blob.size < data.byteLength ? blob : data;
   } catch {
-    return data; // un formato que el navegador no sabe abrir: tal cual
+    return data; // a format the browser can't open: keep as is
   }
 }
 
 type Source = 'camera' | 'photo' | 'file';
 
-/** Pide una foto o un archivo y lo anexa al nodo. Devuelve el nombre del anexo y los bytes originales (para la AI). */
+/** Asks for a photo or file and attaches it to the node. Returns the attachment name and the original bytes (for the AI). */
 async function addFile(source: Source, prefix: string): Promise<{ name: string; data: ArrayBuffer } | null> {
   try {
     const picked = source === 'camera' ? await docodez.capturePhoto!()
@@ -159,17 +159,17 @@ async function addFile(source: Source, prefix: string): Promise<{ name: string; 
   }
 }
 
-/** Quita del nodo los anexos que ya no usa nada de la bitácora. */
+/** Removes node attachments that nothing in the log uses anymore. */
 async function dropUnused(names: string[]): Promise<void> {
   const used = usedFiles(log);
   for (const name of names) {
     if (used.has(name)) continue;
     fileUrls.delete(name);
-    try { await docodez.deleteAttachment?.(name); } catch { /* ya no estaba */ }
+    try { await docodez.deleteAttachment?.(name); } catch { /* already gone */ }
   }
 }
 
-// --- visor de fotos ----------------------------------------------------------------------------------------------------------
+// --- photo viewer ----------------------------------------------------------------------------------------------------------
 let viewer: { files: string[]; index: number } | null = null;
 function openViewer(files: string[], index: number): void {
   viewer = { files, index };
@@ -201,8 +201,8 @@ $('viewer').addEventListener('pointerup', (e) => {
   swipeX = null;
 });
 
-// --- la hoja de edición (un registro) -------------------------------------------------------------------------------------------
-/** Lo que se edita en la hoja abierta: al cancelar, se borran los anexos agregados; al guardar, los quitados. */
+// --- the edit sheet (one record) -------------------------------------------------------------------------------------------
+/** What the open sheet is editing: on cancel, added attachments are deleted; on save, removed ones are. */
 interface Sheet { added: string[]; removed: string[]; close: () => void }
 let sheet: Sheet | null = null;
 
@@ -220,7 +220,7 @@ function openSheet(title: string, build: (body: HTMLElement, ro: boolean) => voi
   };
   const cancel = async () => {
     current.close();
-    await dropUnused(current.added); // lo que se anexó y no se guardó
+    await dropUnused(current.added); // attached but not saved
   };
   head.appendChild(button('icon-btn', '✕', () => void cancel()));
   box.append(head, body);
@@ -253,9 +253,9 @@ function openSheet(title: string, build: (body: HTMLElement, ro: boolean) => voi
   $('sheet').scrollTop = 0;
 }
 
-/** Un campo con su etiqueta. */
+/** A field with its label. */
 function field(parent: HTMLElement, label: string, control: HTMLElement, cls = ''): HTMLElement {
-  // <label> solo con un campo de texto: con botones adentro, tocar la etiqueta apretaría el primero.
+  // <label> only around a text input: with buttons inside, tapping the label would press the first one.
   const f = el(control instanceof HTMLInputElement ? 'label' : 'div', 'field ' + cls);
   f.appendChild(el('span', '', label));
   f.appendChild(control);
@@ -284,8 +284,8 @@ function numberInput(parent: HTMLElement, label: string, value: number | null, s
   return textInput(parent, label, numText(value), (v) => set(parseNum(v)), ro, { mode: 'decimal', ...opts });
 }
 
-/** Una fecha (aaaa-mm-dd) con un botón "Hoy". No es un <input type=date>: su ventanita nativa sale fuera de lugar en el visor
- *  integrado de Windows (ver sdk/picker.ts). */
+/** A date (yyyy-mm-dd) with a "Today" button. Not an <input type=date>: its native popup shows up in the wrong place in the
+ *  embedded Windows viewer (see sdk/picker.ts). */
 function dateInput(parent: HTMLElement, label: string, value: string, set: (v: string) => void, ro: boolean, cls = ''): HTMLInputElement {
   const row = el('div', 'row');
   const input = el('input', 'date') as HTMLInputElement;
@@ -317,7 +317,7 @@ function checkbox(parent: HTMLElement, label: string, value: boolean, set: (v: b
   return box;
 }
 
-/** Botones para elegir uno (o para completar un campo). */
+/** Buttons to pick one option (or to fill in a field). */
 function chips(parent: HTMLElement, choices: [string, string][], current: string, pick: (v: string) => void, ro: boolean): HTMLElement {
   const group = el('div', 'choices');
   for (const [value, label] of choices) {
@@ -332,7 +332,7 @@ function chips(parent: HTMLElement, choices: [string, string][], current: string
   return group;
 }
 
-/** Las fotos y archivos de un registro (miniaturas; tocar una foto la abre), con los botones para agregar. */
+/** A record's photos and files (thumbnails; tapping a photo opens it), with buttons to add more. */
 function filesField(parent: HTMLElement, files: string[], prefix: string, ro: boolean, label = t.files): { refresh: () => void } {
   const wrap = el('div', 'files');
   const refresh = () => {
@@ -381,7 +381,7 @@ function filesField(parent: HTMLElement, files: string[], prefix: string, ro: bo
   return { refresh };
 }
 
-/** El texto con formato: editor en modo edición, la página en modo vista. */
+/** Rich text: an editor in edit mode, the rendered page in view mode. */
 function richField(parent: HTMLElement, label: string, html: string, set: (v: string) => void, ro: boolean, placeholder = ''): void {
   if (ro) {
     const view = el('div', 'rich-view');
@@ -396,15 +396,15 @@ function richField(parent: HTMLElement, label: string, html: string, set: (v: st
   parent.appendChild(f);
 }
 
-// --- leer de una foto con la AI ----------------------------------------------------------------------------------------------
+// --- reading from a photo with AI ----------------------------------------------------------------------------------------------
 async function aiAvailable(): Promise<boolean> {
   if (typeof docodez.aiExtract !== 'function') return false;
   try { return (await docodez.aiCapabilities!()).includes('image.text'); } catch { return false; }
 }
 
 /**
- * Saca la foto (o la elige), la deja como anexo del registro y, si hay AI, lee los datos. Devuelve lo leído (null si no
- * se pudo). La persona revisa los valores antes de guardar.
+ * Takes the photo (or picks one), attaches it to the record and, if AI is available, reads the values. Returns what was
+ * read (null if it couldn't). The user reviews the values before saving.
  */
 async function readFromPhoto(files: string[], prefix: string, refresh: () => void, instructions: string,
   fields: DocodezAiField[]): Promise<Record<string, number | string | null> | null> {
@@ -416,7 +416,7 @@ async function readFromPhoto(files: string[], prefix: string, refresh: () => voi
   if (!(await aiAvailable())) { toast(t.noAi); return null; }
   try {
     const values = await docodez.aiExtract!(got.data, instructions, fields);
-    if (!values) return null; // canceló
+    if (!values) return null; // cancelled
     if (Object.values(values).every((v) => v == null)) { toast(t.aiNothing); return null; }
     toast(t.aiRead);
     return values;
@@ -428,7 +428,7 @@ async function readFromPhoto(files: string[], prefix: string, refresh: () => voi
 
 const flash = (input: HTMLInputElement) => { input.classList.remove('flash'); void input.offsetWidth; input.classList.add('flash'); };
 
-// --- el carro (arriba) -------------------------------------------------------------------------------------------------------
+// --- the car (header) -------------------------------------------------------------------------------------------------------
 function renderCar(): void {
   const box = $('car');
   box.innerHTML = '';
@@ -450,7 +450,7 @@ function renderCar(): void {
   info.appendChild(el('div', 'car-sub', sub || (title ? '' : t.newCarHint)));
   const odo = currentOdometer(log);
   if (odo != null) info.appendChild(el('div', 'car-odo', `🧭 ${fmt(odo)} ${units().distance}`));
-  // Fase 11g: el aviso de mantenimiento, a la vista al abrir el carro.
+  // Phase 11g: the maintenance warning, visible when the car is opened.
   const due = dueCounts();
   if (due.overdue + due.soon) {
     info.appendChild(button('due-banner' + (due.overdue ? ' alert' : ''), `⚠️ ${t.tabMaint}: ${t.banner(due.overdue, due.soon)}`, () => showTab('maint')));
@@ -466,7 +466,7 @@ function renderCar(): void {
   box.appendChild(tools);
 }
 
-/** Lista de sugerencias dibujada en la página debajo de un campo (no <datalist>: su ventanita nativa sale fuera de lugar). */
+/** A suggestion list drawn on the page below a field (not <datalist>: its native popup shows up in the wrong place). */
 function suggest(input: HTMLInputElement, items: () => string[] | Promise<string[]>): void {
   const host = input.parentElement!;
   host.classList.add('suggest-host');
@@ -556,7 +556,7 @@ function editCar(): void {
   }, {
     isNew: false,
     save: () => {
-      // Una sola foto: la última que se puso.
+      // A single photo: the last one set.
       draft.photo = photo.length ? photo[photo.length - 1] : null;
       if (sheet) sheet.removed.push(...photo.slice(0, -1));
       log.car = draft;
@@ -592,7 +592,7 @@ async function editSettings(): Promise<void> {
         if (changed) convertUnits(log, s.distance, s.volume);
         log.settings.economy = s.economy;
         log.settings.currency = s.currency;
-        if (hasAppData) void docodez.setAppJSON({ settings: log.settings }).catch(() => { /* no importa */ });
+        if (hasAppData) void docodez.setAppJSON({ settings: log.settings }).catch(() => { /* doesn't matter */ });
       };
       const hasData = log.fuel.length + log.trips.length + log.repairs.length + log.parts.length > 0;
       if (changed && hasData) {
@@ -604,7 +604,7 @@ async function editSettings(): Promise<void> {
   });
 }
 
-// --- pestañas ------------------------------------------------------------------------------------------------------------------
+// --- tabs ------------------------------------------------------------------------------------------------------------------
 function renderTabs(): void {
   const nav = $('tabs');
   nav.innerHTML = '';
@@ -629,7 +629,7 @@ function renderPage(): void {
 
 function showTab(key: Tab): void {
   tab = key;
-  try { localStorage.setItem('carlog.tab', key); } catch { /* sin almacenamiento */ }
+  try { localStorage.setItem('carlog.tab', key); } catch { /* no storage */ }
   renderTabs();
   renderPage();
 }
@@ -661,7 +661,7 @@ const dist = (v: number | null) => (v == null ? '—' : `${fmt(v)} ${units().dis
 const vol = (v: number | null, d = 2) => (v == null ? '—' : `${fmt(v, d)} ${units().volume}`);
 const cur = (v: number | null) => money(v, units().currency);
 
-/** Una fila de una lista (tocarla abre el registro). */
+/** A list row (tapping it opens the record). */
 function row(parent: HTMLElement, opts: { icon: string; title: string; sub?: string; right?: string; rightSub?: string; files?: number; onclick: () => void; tag?: string }): HTMLElement {
   const r = el('div', 'entry');
   r.appendChild(el('div', 'entry-icon', opts.icon));
@@ -682,7 +682,7 @@ function row(parent: HTMLElement, opts: { icon: string; title: string; sub?: str
 
 function empty(page: HTMLElement, text = t.none): void { page.appendChild(el('div', 'empty', text)); }
 
-// --- resumen -------------------------------------------------------------------------------------------------------------
+// --- summary -------------------------------------------------------------------------------------------------------------
 function renderSummary(page: HTMLElement): void {
   const stats = fuelStats(log.fuel);
   const cards = el('div', 'stats');
@@ -721,7 +721,7 @@ function renderSummary(page: HTMLElement): void {
     page.appendChild(wrap);
   }
 
-  // Lo que lleva puesto (los accesorios, agrupados).
+  // What's currently installed (parts, grouped).
   if (log.parts.length) {
     page.appendChild(el('h4', 'section', t.tabParts));
     const list = el('div', 'part-summary');
@@ -739,7 +739,7 @@ function renderSummary(page: HTMLElement): void {
   if (!log.fuel.length && !log.repairs.length && !log.parts.length && !years.length) empty(page, editable ? t.newCarHint : t.none);
 }
 
-// --- gasolina ------------------------------------------------------------------------------------------------------------
+// --- fuel ------------------------------------------------------------------------------------------------------------
 function renderFuel(page: HTMLElement): void {
   addButton(page, t.addFuel, () => editFuel(null));
   const stats = fuelStats(log.fuel);
@@ -773,7 +773,7 @@ function renderFuel(page: HTMLElement): void {
   }
 }
 
-/** El consumo de cada tanque, como un gráfico de línea chico (SVG). */
+/** Consumption per tank, as a small line chart (SVG). */
 function chart(points: { label: string; rate: number }[]): HTMLElement {
   const s = units();
   const shown = (r: number) => (s.economy === 'per100' ? r * 100 : 1 / r);
@@ -820,7 +820,7 @@ function editFuel(entry: FuelEntry | null): void {
     };
     checkOdo();
 
-    // Cantidad, precio y total: de dos sale el tercero.
+    // Volume, price and total: the third is computed from the other two.
     const money3 = el('div', 'grid three');
     body.appendChild(money3);
     const inputs = {} as Record<FuelField, HTMLInputElement>;
@@ -851,7 +851,7 @@ function editFuel(entry: FuelEntry | null): void {
         for (const f of ['volume', 'price', 'total'] as FuelField[]) {
           if (typeof values[f] === 'number') { draft[f] = values[f] as number; inputs[f].value = numText(draft[f]); flash(inputs[f]); }
         }
-        // Si faltó uno de los tres, sale de los otros dos.
+        // If one of the three is missing, compute it from the other two.
         const have = (['total', 'volume', 'price'] as FuelField[]).filter((f) => typeof values[f] === 'number');
         if (have.length === 2) { const c = completeFuel(draft, have); if (c) { inputs[c].value = numText(draft[c]); inputs[c].classList.add('computed'); } }
       }));
@@ -882,13 +882,13 @@ function editFuel(entry: FuelEntry | null): void {
 const lastPrice = () => fuelOrder(log.fuel).reverse().find((e) => e.price != null)?.price ?? null;
 const lastStation = () => fuelOrder(log.fuel).reverse().find((e) => e.station)?.station ?? '';
 
-// --- Fase 11g: mantenimiento ----------------------------------------------------------------------------------------------
+// --- Phase 11g: maintenance ----------------------------------------------------------------------------------------------
 function dueCounts(): { overdue: number; soon: number } {
   const all = maintenanceStatus(log);
   return { overdue: all.filter((x) => x.due.state === 'overdue').length, soon: all.filter((x) => x.due.state === 'soon').length };
 }
 
-/** Cuándo toca, en palabras: "faltan 1.200 km (≈ 25 días) · en 40 días (el 2026-12-01)". */
+/** When it's due, in words: "1,200 km left (≈ 25 days) · in 40 days (on 2026-12-01)". */
 function dueText(m: Maintenance, due: DueInfo): string {
   if (!m.last) return t.noLast;
   const parts: string[] = [];
@@ -918,7 +918,7 @@ function maintRow(page: HTMLElement, m: Maintenance, due: DueInfo): void {
   }
 }
 
-/** Un intervalo de los sugeridos (en km) en las unidades del carro (millas: redondeado a 500). */
+/** A suggested interval (in km) in the car's units (miles: rounded to 500). */
 const presetDistance = (km: number | null) => (km == null ? null : units().distance === 'km' ? km : Math.round(km / KM_PER_MI / 500) * 500);
 
 function renderMaint(page: HTMLElement): void {
@@ -926,7 +926,7 @@ function renderMaint(page: HTMLElement): void {
   const list = maintenanceStatus(log);
   if (!list.length) page.appendChild(el('div', 'hint', t.maintHint));
   for (const { m, due } of list) maintRow(page, m, due);
-  // Los sugeridos que todavía no están.
+  // Suggested items not added yet.
   const have = new Set(log.maintenance.map((m) => m.title.trim().toLowerCase()));
   const presets = MAINT_PRESETS[lang].filter(([, title]) => !have.has(title.toLowerCase()));
   if (editable && presets.length) {
@@ -975,7 +975,7 @@ function editMaint(entry: Maintenance | null, preset?: Partial<Maintenance>): vo
   });
 }
 
-/** "✓ Hecho": la fecha y el odómetro de hoy (se pueden cambiar); y, si se quiere, también como reparación con su costo. */
+/** "✓ Done": today's date and odometer (editable); optionally also logged as a repair with its cost. */
 function doneMaint(m: Maintenance): void {
   const when = { date: today(), odometer: currentOdometer(log), cost: null as number | null, note: '', repair: true };
   openSheet(t.doneTitle(m.title), (body, ro) => {
@@ -998,7 +998,7 @@ function doneMaint(m: Maintenance): void {
   });
 }
 
-// --- reparaciones --------------------------------------------------------------------------------------------------------
+// --- repairs --------------------------------------------------------------------------------------------------------
 function renderRepairs(page: HTMLElement): void {
   addButton(page, t.addRepair, () => editRepair(null));
   if (log.repairs.length) {
@@ -1045,7 +1045,7 @@ function upsert<T extends { id: string }>(list: T[], item: T): void {
   if (i >= 0) list[i] = item; else list.push(item);
 }
 
-// --- accesorios ------------------------------------------------------------------------------------------------------------
+// --- parts and accessories ------------------------------------------------------------------------------------------------------------
 function renderParts(page: HTMLElement): void {
   addButton(page, t.addPart, () => editPart(null));
   if (!log.parts.length) { empty(page); return; }
@@ -1102,7 +1102,7 @@ function editPart(entry: Part | null, kind: PartKind = 'tires'): void {
   });
 }
 
-// --- viajes ----------------------------------------------------------------------------------------------------------------
+// --- trips ----------------------------------------------------------------------------------------------------------------
 function renderTrips(page: HTMLElement): void {
   addButton(page, t.addTrip, () => editTrip(null));
   const total = log.trips.reduce((a, x) => a + (x.odoStart != null && x.odoEnd != null && x.odoEnd > x.odoStart ? x.odoEnd - x.odoStart : 0), 0);
@@ -1146,7 +1146,7 @@ function editTrip(entry: Trip | null): void {
   });
 }
 
-// --- notas -------------------------------------------------------------------------------------------------------------------
+// --- notes -------------------------------------------------------------------------------------------------------------------
 function renderNotes(page: HTMLElement): void {
   addButton(page, t.addNote, () => editNote(null));
   const list = [...log.notes].sort((a, b) => b.date.localeCompare(a.date));
@@ -1172,7 +1172,7 @@ function editNote(entry: Note | null): void {
   });
 }
 
-// --- página de respaldo (búsqueda, lectores sin el plugin) ---------------------------------------------------------------
+// --- fallback page (search, readers without the plugin) ---------------------------------------------------------------
 function preview(): string {
   const s = units();
   const car = log.car;
@@ -1216,7 +1216,7 @@ function preview(): string {
   return p.join('');
 }
 
-// --- modo, tema, eventos -------------------------------------------------------------------------------------------------------
+// --- mode, theme, events -------------------------------------------------------------------------------------------------------
 function setEditable(value: boolean): void {
   editable = value;
   document.body.classList.toggle('editable', value);
@@ -1248,7 +1248,7 @@ document.title = carTitle(log.car) || t.newCar;
 applyTheme(ctx.theme);
 setEditable(editable);
 
-// Para las pruebas automáticas.
+// For automated tests.
 (window as unknown as Record<string, unknown>).__carlog = {
   get log() { return log; }, set log(v: CarLog) { log = normalizeLog(v); renderAll(); },
   editFuel, editRepair, editPart, editTrip, editNote, editCar, editSettings, editMaint, doneMaint, saveNow, renderAll, preview,

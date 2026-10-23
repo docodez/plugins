@@ -1,11 +1,11 @@
-// Un editor de texto con formato chiquito (negrita, cursiva, subrayado, listas, título, enlace) para las notas de las
-// reparaciones, los viajes y las notas. Lo que se guarda pasa siempre por sanitize: solo etiquetas de texto, sin scripts ni
-// estilos (lo pegado de una página web trae de todo).
+// A tiny rich text editor (bold, italic, underline, lists, heading, link) for repair notes, trips and notes. Whatever is
+// saved always goes through sanitize: text tags only, no scripts or styles (content pasted from a web page brings
+// everything along).
 
 const ALLOWED = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'S', 'P', 'DIV', 'BR', 'UL', 'OL', 'LI', 'H3', 'H4', 'BLOCKQUOTE', 'A', 'SPAN', 'CODE', 'PRE', 'HR']);
 const DROP = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'TEMPLATE', 'NOSCRIPT', 'SVG', 'MATH', 'HEAD', 'TITLE', 'META', 'LINK']);
 
-/** El HTML con solo lo permitido (las etiquetas desconocidas dejan su texto; los enlaces, solo http/https/mailto/tel). */
+/** The HTML with only what's allowed (unknown tags keep their text; links only http/https/mailto/tel). */
 export function sanitize(html: string): string {
   const doc = new DOMParser().parseFromString(`<body>${html ?? ''}</body>`, 'text/html');
   const clean = (node: Node, into: Node) => {
@@ -28,11 +28,11 @@ export function sanitize(html: string): string {
   };
   const box = document.createElement('div');
   clean(doc.body, box);
-  // Sin párrafos vacíos al final.
+  // No empty paragraphs at the end.
   return box.innerHTML.replace(/(<br>|<p><\/p>|<div><\/div>|<div><br><\/div>|\s)+$/g, '').trim();
 }
 
-/** El texto plano (para la vista previa de una fila y la búsqueda). */
+/** The plain text (for a row's preview and for search). */
 export function plainText(html: string): string {
   const box = document.createElement('div');
   box.innerHTML = sanitize(html).replace(/<(br|\/p|\/div|\/li|\/h3|\/h4)>/g, '$&\n');
@@ -43,7 +43,7 @@ export interface RichTexts { bold: string; italic: string; underline: string; bu
 
 export interface RichEditor { element: HTMLElement; get html(): string; set html(v: string) }
 
-/** El editor: una barra y un área editable. onChange se llama al escribir. ask: pedir la dirección de un enlace. */
+/** The editor: a toolbar and an editable area. onChange is called while typing. ask: prompts for a link's URL. */
 export function createRichEditor(texts: RichTexts, html: string, onChange: () => void,
   ask: (title: string) => Promise<string | null>, placeholder = ''): RichEditor {
   const wrap = document.createElement('div');
@@ -67,7 +67,7 @@ export function createRichEditor(texts: RichTexts, html: string, onChange: () =>
   area.addEventListener('keyup', remember);
   area.addEventListener('mouseup', remember);
   area.addEventListener('input', () => { remember(); onChange(); });
-  // Pegar: como texto con formato limpio (sin los estilos de la página de origen).
+  // Paste: as clean rich text (without the source page's styles).
   area.addEventListener('paste', (e) => {
     const data = e.clipboardData;
     if (!data) return;
@@ -82,7 +82,7 @@ export function createRichEditor(texts: RichTexts, html: string, onChange: () =>
     b.className = 'rich-btn';
     b.innerHTML = label;
     b.title = title;
-    // Que el clic no le saque el foco (ni la selección) al texto.
+    // Keep the click from taking focus (or the selection) away from the text.
     b.addEventListener('pointerdown', (e) => e.preventDefault());
     b.onclick = async () => { await run(); onChange(); };
     bar.appendChild(b);

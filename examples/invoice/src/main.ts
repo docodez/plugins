@@ -1,10 +1,10 @@
-// Invoice / Facturas - plugin de Docodez (ver doc/04-plugins.md y README.md). TypeScript, compilado con Vite.
-// - La FACTURA va en el nodo (docodez.getJSON / setJSON), con una copia de los datos del negocio (si después cambian, una
-//   factura vieja no cambia).
-// - El NEGOCIO (nombre, logo, dirección, números fiscales, impuestos, numeración, clientes, lo facturado antes) va en los
-//   datos de la app (docodez.getAppJSON / setAppJSON): lo mismo para todas las facturas.
-// - Compartir (API 3: docodez.shareFile) como PDF, imagen o página web: en Android, con el selector del sistema (WhatsApp,
-//   SMS, correo...); en la computadora, se guarda.
+// Invoice - Docodez plugin (see doc/04-plugins.md and README.md). TypeScript, built with Vite.
+// - The INVOICE goes in the node (docodez.getJSON / setJSON), with a copy of the business data (if that changes later, an
+//   old invoice stays the same).
+// - The BUSINESS (name, logo, address, tax numbers, taxes, numbering, clients, previously invoiced items) goes in the
+//   app data (docodez.getAppJSON / setAppJSON): the same for every invoice.
+// - Sharing (API 3: docodez.shareFile) as PDF, image or web page: on Android, through the system share sheet (WhatsApp,
+//   SMS, email...); on desktop, it is saved.
 import type { DocodezContext } from '../../../sdk/docodez';
 import { installDevDocodez } from '../../../sdk/docodez-dev';
 import { createColorPicker, createPicker } from '../../../sdk/picker';
@@ -53,7 +53,7 @@ const countryName = (code: string) => {
   try { return new Intl.DisplayNames([lang], { type: 'region' }).of(code) ?? code; } catch { return code; }
 };
 
-// --- guardar -------------------------------------------------------------------------------------------------------------
+// --- saving --------------------------------------------------------------------------------------------------------------
 let saveTimer = 0;
 let storeTimer = 0;
 function scheduleSave(): void {
@@ -66,11 +66,11 @@ async function saveNow(): Promise<void> {
   saveTimer = 0;
   if (!editable) return;
   try {
-    // La primera vez que se guarda, el número queda usado.
+    // The first time it is saved, the number is used up.
     if (isNew) { isNew = false; profile.nextNumber++; saveStore(); }
     await docodez.setJSON(inv);
     await docodez.setPreview(nodePreview());
-    // Lo facturado queda para sugerirlo después (solo se guarda si cambió).
+    // Keep the invoiced items to suggest them later (only saved if they changed).
     const before = JSON.stringify(profile.items);
     rememberItems(profile, inv);
     if (JSON.stringify(profile.items) !== before) saveStore();
@@ -88,14 +88,14 @@ async function saveStoreNow(): Promise<void> {
   if (!hasAppData) return;
   try { await docodez.setAppJSON(profile); } catch (e) { toast(t.saveError + (e as Error).message); }
 }
-/** Algo cambió en la factura: guardar y redibujar la vista previa (sin rearmar el editor: no se pierde el foco). */
+/** Something changed in the invoice: save and redraw the preview (without rebuilding the editor, so focus is kept). */
 function changed(): void {
   scheduleSave();
   schedulePreview();
   updateTotals();
 }
 
-// --- avisos ----------------------------------------------------------------------------------------------------------------
+// --- notices ---------------------------------------------------------------------------------------------------------------
 let toastTimer = 0;
 function toast(text: string): void {
   const box = $('toast');
@@ -121,7 +121,7 @@ function confirmBox(text: string, okText = t.ok): Promise<boolean> {
   });
 }
 
-// --- campos ------------------------------------------------------------------------------------------------------------------
+// --- fields ------------------------------------------------------------------------------------------------------------------
 function field(parent: HTMLElement, label: string, control: HTMLElement, cls = ''): HTMLElement {
   const f = el(control instanceof HTMLInputElement || control instanceof HTMLTextAreaElement ? 'label' : 'div', 'field ' + cls);
   f.appendChild(el('span', '', label));
@@ -161,7 +161,7 @@ function chips<T extends string>(choices: [T, string][], current: T, pick: (v: T
   }
   return group;
 }
-/** Sugerencias dibujadas en la página debajo de un campo (no <datalist>: su ventanita nativa sale fuera de lugar). */
+/** Suggestions drawn in the page below a field (not <datalist>: its native popup shows up in the wrong place). */
 function suggest(target: HTMLInputElement, items: () => { label: string; pick: () => void }[]): void {
   const host = el('div', 'suggest-host');
   target.replaceWith(host);
@@ -191,7 +191,7 @@ function card(parent: HTMLElement, title: string): HTMLElement {
   return c;
 }
 
-// --- el editor ----------------------------------------------------------------------------------------------------------------
+// --- the editor ---------------------------------------------------------------------------------------------------------------
 const colLabel = (c: Column) => c.label.trim() || DOC[inv.language].columns[c.kind];
 let totalsBox: HTMLElement | null = null;
 const amountCells = new Map<string, HTMLElement>();
@@ -202,7 +202,7 @@ function renderEditor(): void {
   box.innerHTML = '';
   amountCells.clear();
 
-  // ---- la factura ----
+  // ---- the invoice ----
   const head = card(box, t.kinds[inv.kind]);
   head.appendChild(chips<DocKind>([['invoice', t.kinds.invoice], ['quote', t.kinds.quote], ['receipt', t.kinds.receipt]], inv.kind,
     (v) => { inv.kind = v; changed(); renderBar(); head.querySelector('h3')!.textContent = t.kinds[v]; }));
@@ -227,7 +227,7 @@ function renderEditor(): void {
   if (!editable) (curHost.querySelector('button') as HTMLButtonElement).disabled = true;
   field(g2, t.currency, curHost);
 
-  // ---- el cliente ----
+  // ---- the client ----
   const cl = card(box, t.client);
   const g3 = el('div', 'grid');
   cl.appendChild(g3);
@@ -246,7 +246,7 @@ function renderEditor(): void {
   field(cl, t.clientTaxId, input(inv.to.taxId, (v) => { inv.to.taxId = v; changed(); }));
   if (editable) cl.appendChild(button('btn small', t.saveClient, () => { rememberClient(profile, inv.to); saveStore(); toast(t.clientSaved); }));
 
-  // ---- lo que se cobra ----
+  // ---- the items ----
   const it = card(box, t.items);
   const table = el('div', 'items');
   it.appendChild(table);
@@ -309,7 +309,7 @@ function renderEditor(): void {
     it.appendChild(actions);
   }
 
-  // ---- impuestos y totales ----
+  // ---- taxes and totals ----
   const tc = card(box, t.taxes);
   for (const tax of inv.taxes) {
     const row = el('div', 'row tax');
@@ -336,12 +336,12 @@ function renderEditor(): void {
   totalsBox = el('div', 'totals');
   tc.appendChild(totalsBox);
 
-  // ---- notas ----
+  // ---- notes ----
   const nc = card(box, t.notes);
   nc.appendChild(area(inv.notes, (v) => { inv.notes = v; changed(); }, 3));
   field(nc, t.terms, area(inv.terms, (v) => { inv.terms = v; changed(); }, 2));
 
-  // ---- aspecto ----
+  // ---- look ----
   const lc = card(box, t.look);
   field(lc, t.template, chips<TemplateId>((['classic', 'modern', 'minimal', 'bold'] as TemplateId[]).map((x) => [x, t.templates[x]]), inv.template,
     (v) => { inv.template = v; profile.template = v; saveStore(); changed(); }));
@@ -365,9 +365,9 @@ function focusLast(): void {
 }
 
 function dateInput(value: string, set: (v: string) => void): HTMLInputElement {
-  // No <input type=date>: su ventanita nativa sale fuera de lugar en el visor integrado de Windows (ver sdk/picker.ts).
+  // Not <input type=date>: its native popup shows up in the wrong place in the built-in Windows viewer (see sdk/picker.ts).
   const i = input(value, (v) => { const ok = !v.trim() || /^\d{4}-\d{2}-\d{2}$/.test(v.trim()); i.classList.toggle('bad', !ok); if (ok) set(v.trim()); },
-    { placeholder: lang === 'en' ? 'yyyy-mm-dd' : 'aaaa-mm-dd', mode: 'numeric', cls: 'date' });
+    { placeholder: lang === 'en' ? 'yyyy-mm-dd' : lang === 'fr' ? 'aaaa-mm-jj' : 'aaaa-mm-dd', mode: 'numeric', cls: 'date' });
   return i;
 }
 
@@ -387,7 +387,7 @@ function updateTotals(): void {
   totalsBox.innerHTML = rows.map(([k, v, c]) => `<div class="${c ?? ''}"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
 }
 
-// --- columnas ----------------------------------------------------------------------------------------------------------------
+// --- columns -----------------------------------------------------------------------------------------------------------------
 function editColumns(): void {
   const draft: Column[] = structuredClone(inv.columns);
   openSheet(t.columnsTitle, (body) => {
@@ -421,8 +421,8 @@ function editColumns(): void {
   });
 }
 
-// --- mi negocio ----------------------------------------------------------------------------------------------------------------
-/** El logo: achicado (lado mayor 600 px), PNG si tiene transparencia o es chico, si no JPEG. */
+// --- my business ---------------------------------------------------------------------------------------------------------------
+/** The logo: downscaled (longest side 600 px), PNG if it has transparency or is small, JPEG otherwise. */
 async function logoDataUrl(data: ArrayBuffer, name: string): Promise<string> {
   const type = /\.svg$/i.test(name) ? 'image/svg+xml' : '';
   const url = URL.createObjectURL(new Blob([data], type ? { type } : {}));
@@ -483,7 +483,7 @@ function editBusiness(): void {
     field(g, t.phone, input(b.phone, (v) => (b.phone = v), { mode: 'tel' }));
     field(g, t.email, input(b.email, (v) => (b.email = v), { mode: 'email' }));
     field(g, t.website, input(b.website, (v) => (b.website = v)));
-    // país: cómo se llama el número fiscal, la moneda y los impuestos sugeridos
+    // country: the name of the tax number, the currency and the suggested taxes
     const countryHost = el('div');
     const names = COUNTRIES.map((c) => [c.code, countryName(c.code)] as const).sort((x, y) => (x[0] === 'ZZ' ? 1 : y[0] === 'ZZ' ? -1 : x[1].localeCompare(y[1])));
     const picker = createPicker(countryHost, t.country);
@@ -542,10 +542,10 @@ function editBusiness(): void {
     Object.assign(profile, p);
     profile.taxes = taxes;
     void saveStoreNow();
-    // Esta factura toma los datos nuevos (las demás guardan los suyos).
+    // This invoice takes the new data (the others keep theirs).
     if (editable) {
       inv.from = structuredClone(b);
-      // La moneda del país (si se cambió de país); en una factura que ya se mandó, no.
+      // The country currency (if the country changed); not on an invoice that was already sent.
       if (inv.status === 'draft') inv.currency = profile.currency;
       if (!inv.taxes.length) inv.taxes = taxes.map((x) => ({ ...x, id: newId() }));
       if (!inv.notes) inv.notes = p.notes;
@@ -558,7 +558,7 @@ function editBusiness(): void {
   });
 }
 
-// --- la hoja (para columnas y el negocio) --------------------------------------------------------------------------------------
+// --- the sheet (for columns and the business) ----------------------------------------------------------------------------------
 let sheetOpen = false;
 function openSheet(title: string, build: (body: HTMLElement) => void, save: () => boolean | void): void {
   const box = $('sheetBox');
@@ -577,7 +577,7 @@ function openSheet(title: string, build: (body: HTMLElement) => void, save: () =
   sheetOpen = true;
 }
 
-// --- la vista previa ---------------------------------------------------------------------------------------------------------
+// --- the preview -------------------------------------------------------------------------------------------------------------
 let previewTimer = 0;
 let logoAspect: number | null = null;
 let logoFor: string | null = null;
@@ -596,7 +596,7 @@ async function buildPages(): Promise<Page[]> {
     if (!m) return d;
     try { return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(new Date(+m[1], +m[2] - 1, +m[3])); } catch { return d; }
   };
-  // Fase 12a: en Docodez Free, "Hecho con Docodez" en el pie (en Pro, no).
+  // Phase 12a: in Docodez Free, "Made with Docodez" in the footer (not in Pro).
   const madeWith = ctx.tier === 'free' ? DOC[inv.language].madeWith : undefined;
   return layoutInvoice({ inv, totals: totals(inv), doc: DOC[inv.language], money: moneyFormat(inv), dateText, logoAspect, madeWith });
 }
@@ -611,7 +611,7 @@ async function renderPreview(): Promise<void> {
   $('preview').innerHTML = pages.map((p) => `<div class="page">${pageSvg(p)}</div>`).join('');
 }
 
-// --- compartir ---------------------------------------------------------------------------------------------------------------
+// --- sharing -----------------------------------------------------------------------------------------------------------------
 const fileBase = () => `${t.kinds[inv.kind]}-${inv.number || 'draft'}`.replace(/[\\/:*?"<>|\s]+/g, '-');
 
 async function share(format: 'pdf' | 'png' | 'html'): Promise<void> {
@@ -630,7 +630,7 @@ async function share(format: 'pdf' | 'png' | 'html'): Promise<void> {
     else if (format === 'png') result = await docodez.shareFile(fileBase() + '.png', await invoicePng(pages), 'image/png', text);
     else result = await docodez.shareFile(fileBase() + '.html', invoiceHtml(pages, title, inv.language), 'text/html', text);
     if (result) toast(result === 'shared' ? t.shared : t.saved);
-    // Mandada: pasa de borrador a enviada.
+    // Sent: goes from draft to sent.
     if (result && inv.status === 'draft' && editable) { inv.status = 'sent'; changed(); renderEditor(); }
   } catch (e) {
     toast(t.shareError + (e as Error).message);
@@ -639,7 +639,7 @@ async function share(format: 'pdf' | 'png' | 'html'): Promise<void> {
 
 function closeMenu(): void { $('shareMenu').hidden = true; }
 
-// --- la barra ----------------------------------------------------------------------------------------------------------------
+// --- the toolbar -------------------------------------------------------------------------------------------------------------
 function renderBar(): void {
   $('docTitle').textContent = `${t.kinds[inv.kind]} ${inv.number}`;
   document.title = `${t.kinds[inv.kind]} ${inv.number}`;
@@ -684,7 +684,7 @@ document.addEventListener('keydown', (e) => {
 });
 $('viewNote').textContent = t.viewMode;
 
-// --- página de respaldo (búsqueda, lectores sin el plugin) ---------------------------------------------------------------
+// --- fallback page (search, readers without the plugin) ------------------------------------------------------------------
 function nodePreview(): string {
   const money = moneyFormat(inv);
   const tt = totals(inv);
@@ -703,7 +703,7 @@ function nodePreview(): string {
     (inv.notes ? `<p>${esc(inv.notes)}</p>` : '');
 }
 
-// --- modo y tema ---------------------------------------------------------------------------------------------------------------
+// --- mode and theme ------------------------------------------------------------------------------------------------------------
 function setEditable(value: boolean): void {
   editable = value;
   document.body.classList.toggle('editable', value);
@@ -725,10 +725,10 @@ setView(matchMedia('(min-width: 900px)').matches ? 'edit' : isNew ? 'edit' : 'pr
 renderBar();
 setEditable(editable);
 void renderPreview();
-// Una factura nueva queda guardada enseguida (con su número).
+// A new invoice is saved right away (with its number).
 if (isNew && editable) void saveNow();
 
-// Para las pruebas automáticas.
+// For automated tests.
 (window as unknown as Record<string, unknown>).__invoice = {
   get inv() { return inv; }, get profile() { return profile; }, buildPages, share, editBusiness, editColumns, renderEditor, saveNow, nodePreview,
   invoicePdf, invoicePng, invoiceHtml,

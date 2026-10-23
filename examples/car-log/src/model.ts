@@ -1,9 +1,9 @@
-// Los datos de la bitácora del carro (van en el nodo: docodez.getJSON / setJSON; fotos y facturas, como anexos) y las
-// cuentas (consumo, gastos). Sin DOM: se puede probar suelto.
+// The car log data (stored in the node: docodez.getJSON / setJSON; photos and invoices as attachments) and the
+// calculations (consumption, spending). No DOM: can be tested on its own.
 
 export type DistanceUnit = 'km' | 'mi';
 export type VolumeUnit = 'L' | 'gal';
-/** Cómo se muestra el consumo: litros cada 100 km (per100) o km por litro / millas por galón (perVolume). */
+/** How consumption is shown: liters per 100 km (per100) or km per liter / miles per gallon (perVolume). */
 export type Economy = 'per100' | 'perVolume';
 
 export interface Settings { distance: DistanceUnit; volume: VolumeUnit; currency: string; economy: Economy }
@@ -11,11 +11,11 @@ export interface Settings { distance: DistanceUnit; volume: VolumeUnit; currency
 export interface Car {
   name: string; make: string; model: string; year: string; trim: string; vin: string; plate: string; color: string;
   fuelType: string; engine: string; tank: number | null; purchaseDate: string; purchaseOdometer: number | null; notes: string;
-  /** Anexo con la foto del carro, o null. */
+  /** Attachment with the car's photo, or null. */
   photo: string | null;
 }
 
-/** Una carga de combustible. <full> = se llenó el tanque; <missed> = antes de esta hubo una carga que no se anotó. */
+/** A fuel fill-up. <full> = the tank was filled; <missed> = there was an unrecorded fill-up before this one. */
 export interface FuelEntry {
   id: string; date: string; odometer: number | null; volume: number | null; price: number | null; total: number | null;
   full: boolean; missed: boolean; station: string; note: string; files: string[];
@@ -32,7 +32,7 @@ export const PART_EMOJI: Record<PartKind, string> = {
   tires: '🛞', wipers: '🌧️', bulbs: '💡', oil: '🛢️', filters: '🌀', battery: '🔋', brakes: '🛑', fluids: '💧', other: '🔩',
 };
 
-/** Una pieza o accesorio: qué es (marca, medida/número de parte) y para qué (invierno, delantera izquierda, carrera...). */
+/** A part or accessory: what it is (brand, size/part number) and what it's for (winter, front left, racing...). */
 export interface Part {
   id: string; kind: PartKind; name: string; brand: string; spec: string; use: string; date: string; odometer: number | null;
   cost: number | null; where: string; note: string; files: string[];
@@ -45,12 +45,12 @@ export interface Trip {
 
 export interface Note { id: string; title: string; date: string; html: string; files: string[] }
 
-/** Una vez que se hizo un mantenimiento (fecha y odómetro). */
+/** One time a maintenance item was done (date and odometer). */
 export interface Done { date: string; odometer: number | null }
 
 /**
- * Un mantenimiento que se repite (cambio de aceite, rotar las gomas, el seguro...): cada tanta distancia y/o cada tantos
- * meses, desde la última vez. <history>: las veces anteriores (la última es <last>).
+ * A recurring maintenance item (oil change, tire rotation, insurance...): every so much distance and/or every so many
+ * months since the last time. <history>: earlier times (the latest is <last>).
  */
 export interface Maintenance {
   id: string; title: string; icon: string; everyDistance: number | null; everyMonths: number | null; last: Done | null; history: Done[]; note: string;
@@ -59,7 +59,7 @@ export interface Maintenance {
 export interface CarLog {
   version: 1; car: Car; settings: Settings;
   fuel: FuelEntry[]; repairs: Repair[]; parts: Part[]; trips: Trip[]; notes: Note[];
-  /** Fase 11g: los mantenimientos con aviso. */
+  /** Phase 11g: maintenance items with reminders. */
   maintenance: Maintenance[];
 }
 
@@ -77,7 +77,7 @@ const done = (v: unknown): Done | null => {
 const arr = <T>(v: unknown, fn: (x: Record<string, unknown>) => T): T[] =>
   Array.isArray(v) ? v.filter((x) => x && typeof x === 'object').map((x) => fn(x as Record<string, unknown>)) : [];
 
-/** Los datos del nodo, completos (lo que falte, con su valor por omisión). */
+/** The node data, complete (anything missing gets its default value). */
 export function normalizeLog(raw: unknown, defaults?: Partial<Settings>): CarLog {
   const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
   const c = (r.car && typeof r.car === 'object' ? r.car : {}) as Record<string, unknown>;
@@ -122,7 +122,7 @@ export function normalizeLog(raw: unknown, defaults?: Partial<Settings>): CarLog
   };
 }
 
-/** Un número escrito por la persona ("12,5", "1.234,5", "1,234.5", "45 L"), o null. */
+/** A number typed by the user ("12,5", "1.234,5", "1,234.5", "45 L"), or null. */
 export function parseNum(text: string): number | null {
   const m = /-?\d[\d.,\s]*/.exec(String(text ?? ''));
   if (!m) return null;
@@ -141,8 +141,8 @@ const round = (v: number, d: number) => Math.round(v * 10 ** d) / 10 ** d;
 export type FuelField = 'volume' | 'price' | 'total';
 
 /**
- * Completa una carga: de dos de los tres (cantidad, precio por unidad, total) sale el tercero. <edited>: los dos que la
- * persona escribió último (el más reciente primero); se calcula el otro.
+ * Completes a fill-up: the third of (volume, unit price, total) is computed from the other two. <edited>: the two the user
+ * typed last (most recent first); the other one is computed.
  */
 export function completeFuel(e: Pick<FuelEntry, FuelField>, edited: FuelField[]): FuelField | null {
   if (edited.length < 2 || edited[0] === edited[1]) return null;
@@ -155,19 +155,19 @@ export function completeFuel(e: Pick<FuelEntry, FuelField>, edited: FuelField[])
   return target;
 }
 
-/** Las cargas en orden (kilometraje, si no fecha). */
+/** Fill-ups in order (by odometer, otherwise by date). */
 export function fuelOrder(entries: FuelEntry[]): FuelEntry[] {
   return [...entries].sort((a, b) =>
     a.odometer != null && b.odometer != null && a.odometer !== b.odometer ? a.odometer - b.odometer : a.date.localeCompare(b.date));
 }
 
-/** Un tramo entre dos tanques llenos: la distancia, lo cargado (sin contar el primer lleno) y lo pagado. */
+/** A segment between two full tanks: the distance, the fuel added (not counting the first fill) and the amount paid. */
 export interface Segment { entryId: string; date: string; distance: number; volume: number; cost: number | null }
 
 /**
- * El consumo por el método de tanque lleno: entre dos cargas con el tanque lleno se gastó lo que se cargó después de la
- * primera (las parciales del medio y la última, la que vuelve a llenar). Una carga marcada "faltó anotar una antes" corta:
- * no se sabe cuánto se cargó, así que ese tramo no cuenta.
+ * Consumption by the full-tank method: between two full-tank fill-ups, the car used what was added after the first one
+ * (the partial fills in between and the last one, which fills the tank again). A fill-up marked "missed one before" breaks
+ * the chain: we don't know how much was added, so that segment doesn't count.
  */
 export function fuelSegments(entries: FuelEntry[]): Segment[] {
   const segments: Segment[] = [];
@@ -190,9 +190,9 @@ export function fuelSegments(entries: FuelEntry[]): Segment[] {
 }
 
 export interface FuelStats {
-  /** Consumo medio: volumen por distancia (L/km o gal/mi), o null si todavía no hay dos tanques llenos. */
+  /** Average consumption: volume per distance (L/km or gal/mi), or null if there aren't two full tanks yet. */
   average: number | null; last: number | null; best: number | null; worst: number | null;
-  /** Costo de combustible por unidad de distancia. */
+  /** Fuel cost per unit of distance. */
   costPerDistance: number | null;
   totalCost: number; totalVolume: number; count: number; distance: number | null; averagePrice: number | null;
   segments: Segment[];
@@ -223,7 +223,7 @@ export function fuelStats(entries: FuelEntry[]): FuelStats {
   };
 }
 
-/** Lo gastado por año (combustible, reparaciones, piezas), del más nuevo al más viejo. */
+/** Spending per year (fuel, repairs, parts), newest first. */
 export function spendingByYear(log: CarLog): { year: string; fuel: number; repairs: number; parts: number }[] {
   const years = new Map<string, { fuel: number; repairs: number; parts: number }>();
   const add = (date: string, key: 'fuel' | 'repairs' | 'parts', v: number | null) => {
@@ -239,7 +239,7 @@ export function spendingByYear(log: CarLog): { year: string; fuel: number; repai
   return [...years].map(([year, v]) => ({ year, ...v })).sort((a, b) => b.year.localeCompare(a.year));
 }
 
-/** El kilometraje más alto anotado en cualquier lado (o null). */
+/** The highest odometer reading recorded anywhere (or null). */
 export function currentOdometer(log: CarLog): number | null {
   const all = [
     log.car.purchaseOdometer, ...log.fuel.map((e) => e.odometer), ...log.repairs.map((r) => r.odometer),
@@ -253,8 +253,8 @@ export const KM_PER_MI = 1.609344;
 export const L_PER_GAL = 3.785411784;
 
 /**
- * Cambiar las unidades del carro: pasa todo lo anotado (kilometrajes, cantidades, precios por unidad, tanque) a las
- * nuevas, así las cuentas siguen bien.
+ * Changes the car's units: converts everything recorded (odometers, volumes, unit prices, tank) to the new units, so the
+ * calculations stay correct.
  */
 export function convertUnits(log: CarLog, distance: DistanceUnit, volume: VolumeUnit): void {
   const d = log.settings.distance === distance ? 1 : distance === 'km' ? KM_PER_MI : 1 / KM_PER_MI;
@@ -275,7 +275,7 @@ export function convertUnits(log: CarLog, distance: DistanceUnit, volume: Volume
   log.settings.volume = volume;
 }
 
-/** El consumo (volumen por distancia) como se muestra: "7.4 L/100 km", "13.5 km/L", "31.2 mpg". */
+/** Consumption (volume per distance) as displayed: "7.4 L/100 km", "13.5 km/L", "31.2 mpg". */
 export function economyText(rate: number | null, s: Settings): string {
   if (rate == null || !(rate > 0)) return '—';
   if (s.economy === 'per100') return `${fmt(rate * 100, 1)} ${s.volume}/100 ${s.distance}`;
@@ -288,10 +288,10 @@ export const fmt = (v: number, decimals = 0) =>
 
 export const money = (v: number | null, currency: string) => (v == null ? '—' : `${currency}${fmt(v, 2)}`);
 
-/** El nombre del carro para mostrar: el que le puso la persona, si no año + marca + modelo. */
+/** The car's display name: the one the user gave it, otherwise year + make + model. */
 export const carTitle = (car: Car) => car.name.trim() || [car.year, car.make, car.model].filter((x) => x.trim()).join(' ');
 
-/** Todos los anexos que usa la bitácora (para no borrar uno que está en uso). */
+/** All attachments used by the log (so one in use is never deleted). */
 export function usedFiles(log: CarLog): Set<string> {
   const used = new Set<string>();
   if (log.car.photo) used.add(log.car.photo);
@@ -299,9 +299,9 @@ export function usedFiles(log: CarLog): Set<string> {
   return used;
 }
 
-// --- Fase 11g: mantenimiento -------------------------------------------------------------------------------------------------
+// --- Phase 11g: maintenance -------------------------------------------------------------------------------------------------
 
-/** Cuánto se maneja por día (de las cargas y lo demás con fecha y odómetro: el más viejo y el más nuevo), o null. */
+/** Distance driven per day (from fill-ups and other entries with date and odometer: oldest and newest), or null. */
 export function distancePerDay(log: CarLog): number | null {
   const points = [
     ...log.fuel.map((e) => [e.date, e.odometer] as const), ...log.repairs.map((r) => [r.start || r.end, r.odometer] as const),
@@ -326,10 +326,10 @@ export const addMonths = (date: string, months: number): string => {
 
 export type DueState = 'overdue' | 'soon' | 'ok' | 'unknown';
 
-/** Cuándo toca: lo que falta en distancia y en días (lo primero que llegue manda), y el estado. */
+/** When it's due: what's left in distance and in days (whichever comes first wins), and the state. */
 export interface DueInfo {
   state: DueState; dueOdometer: number | null; dueDate: string; distanceLeft: number | null; daysLeft: number | null;
-  /** Días estimados hasta la distancia (con lo que se maneja por día). */
+  /** Estimated days until the distance is reached (based on distance per day). */
   daysByDistance: number | null;
 }
 
@@ -352,7 +352,7 @@ export function dueInfo(m: Maintenance, odometer: number | null, perDay: number 
 
 const ORDER: Record<DueState, number> = { overdue: 0, soon: 1, unknown: 2, ok: 3 };
 
-/** Los mantenimientos con su estado, lo más urgente primero. */
+/** Maintenance items with their state, most urgent first. */
 export function maintenanceStatus(log: CarLog, now = new Date()): { m: Maintenance; due: DueInfo }[] {
   const odo = currentOdometer(log);
   const perDay = distancePerDay(log);
@@ -362,7 +362,7 @@ export function maintenanceStatus(log: CarLog, now = new Date()): { m: Maintenan
 
 const urgency = (d: DueInfo) => Math.min(d.daysLeft ?? Infinity, d.daysByDistance ?? (d.distanceLeft != null ? d.distanceLeft / 50 : Infinity));
 
-/** Anotar que se hizo: pasa a ser la última vez (la anterior va a la historia). */
+/** Record that it was done: it becomes the last time (the previous one moves to history). */
 export function markDone(m: Maintenance, when: Done): void {
   if (m.last) m.history.unshift(m.last);
   m.history = m.history.slice(0, 50);

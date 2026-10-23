@@ -19,7 +19,7 @@ input.flash { animation: flash 1.4s; }
 .muted { color: var(--muted); }
 .grow { flex: 1; }
 
-/* el carro */
+/* the car */
 #car { display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: var(--bar); border-bottom: 1px solid var(--line); }
 .car-pic { flex: none; width: 56px; height: 56px; border-radius: 50%; overflow: hidden; background: var(--soft); display: flex; align-items: center;
   justify-content: center; font-size: 30px; cursor: pointer; }
@@ -34,7 +34,7 @@ input.flash { animation: flash 1.4s; }
 .tool:hover { border-color: var(--accent); }
 #viewNote { padding: 7px 12px; font-size: 13px; border-bottom: 1px solid var(--line); background: var(--soft); color: var(--muted); }
 
-/* pestañas */
+/* tabs */
 #tabs { display: flex; gap: 2px; padding: 0 6px; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; flex: none; }
 #tabs::-webkit-scrollbar { display: none; }
 .tab { border: 0; background: none; padding: 10px 10px 8px; border-bottom: 3px solid transparent; display: inline-flex; gap: 6px; align-items: center;
@@ -43,7 +43,7 @@ input.flash { animation: flash 1.4s; }
 .tab .count { font-size: 11px; background: var(--soft); border-radius: 9px; padding: 0 6px; font-weight: 400; }
 @media (max-width: 520px) { .tab:not(.on) .tab-label { display: none; } .tab { padding: 10px 12px 8px; } .tab .emoji { font-size: 18px; } }
 
-/* páginas */
+/* pages */
 #page { flex: 1; min-height: 0; overflow: auto; padding: 8px 12px 30px; }
 .page-bar { display: flex; justify-content: flex-end; margin: 4px 0 8px; }
 .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin: 6px 0 12px; }
@@ -84,7 +84,7 @@ input.flash { animation: flash 1.4s; }
 .chart .grid-line { stroke: var(--line); stroke-dasharray: 4 4; vector-effect: non-scaling-stroke; }
 .chart .axis { font-size: 11px; fill: var(--muted); }
 
-/* hoja de edición */
+/* edit sheet */
 #sheet { position: fixed; inset: 0; z-index: 70; background: rgba(0,0,0,.35); display: flex; align-items: flex-start; justify-content: center; overflow: auto; padding: 24px 10px; }
 #sheetBox { width: min(620px, 100%); background: var(--bg); border-radius: 14px; box-shadow: var(--shadow); padding: 12px 14px 14px; }
 @media (max-width: 560px) { #sheet { padding: 0; } #sheetBox { border-radius: 0; min-height: 100%; } }
@@ -128,14 +128,14 @@ input.flash { animation: flash 1.4s; }
 .thumb-x { position: absolute; top: 3px; right: 3px; width: 24px; height: 24px; border-radius: 50%; border: 0; background: rgba(0,0,0,.55);
   color: #fff; font-size: 12px; padding: 0; line-height: 24px; }
 
-/* sugerencias */
+/* suggestions */
 .suggest-host { position: relative; }
 .suggest { position: absolute; top: 100%; left: 0; right: 0; z-index: 75; background: var(--bg); border: 1px solid var(--line);
   border-radius: 10px; box-shadow: var(--shadow); padding: 4px; max-height: 240px; overflow: auto; margin-top: 2px; }
 .suggest-item { padding: 8px 10px; border-radius: 7px; cursor: pointer; }
 .suggest-item:hover { background: var(--accent-soft); }
 
-/* editor con formato */
+/* rich text editor */
 .rich { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .rich-bar { display: flex; flex-wrap: wrap; gap: 2px; padding: 4px; background: var(--soft); border-bottom: 1px solid var(--line); }
 .rich-btn { border: 0; background: none; min-width: 32px; min-height: 30px; border-radius: 6px; }
@@ -147,14 +147,14 @@ input.flash { animation: flash 1.4s; }
 .rich-view { background: var(--soft); border-radius: 8px; padding: 8px 10px; line-height: 1.45; }
 .rich-area a, .rich-view a { color: var(--accent); }
 
-/* visor de fotos */
+/* photo viewer */
 #viewer { position: fixed; inset: 0; z-index: 80; background: rgba(0,0,0,.92); display: flex; flex-direction: column; touch-action: pan-y; }
 #viewerImg { flex: 1; min-height: 0; object-fit: contain; width: 100%; user-select: none; -webkit-user-drag: none; }
 #viewerBar { display: flex; align-items: center; gap: 8px; padding: 8px; color: #fff; }
 #viewerBar .tool { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.25); color: #fff; }
 #viewerInfo { flex: 1; text-align: center; font-size: 13px; }
 
-/* diálogos */
+/* dialogs */
 #modal { position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.4); display: flex; align-items: center; justify-content: center; padding: 16px; }
 .modal-box { width: min(420px, 100%); background: var(--bg); border-radius: 14px; box-shadow: var(--shadow); padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
 .modal-box h3 { margin: 4px 0; font-size: 16px; font-weight: 600; }
@@ -164,7 +164,7 @@ input.flash { animation: flash 1.4s; }
   font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 100; max-width: 90vw; text-align: center; }
 #toast.on { opacity: .94; transform: translate(-50%, 0); }
 
-/* Fase 11g: mantenimiento */
+/* Phase 11g: maintenance */
 .tab .count.warn { background: #ffe8a3; color: #6b4a00; font-weight: 700; }
 .tab .count.alert { background: var(--danger); color: #fff; font-weight: 700; }
 .due-banner { margin-top: 4px; border: 0; border-radius: 8px; padding: 3px 9px; font-size: 13px; font-weight: 600; background: #ffe8a3; color: #6b4a00; }

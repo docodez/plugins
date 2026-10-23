@@ -1,26 +1,26 @@
-// Los datos de la lista de compras (van en el nodo) y de los catálogos (van en la app: docodez.getAppJSON), y las cuentas
-// de precios. Sin DOM: se puede probar suelto.
+// The shopping list data (stored in the node), the catalogs (stored in the app: docodez.getAppJSON), and the price
+// math. No DOM: it can be tested on its own.
 import { FOOD_GROUPS, type Lang, type SeedId, seedCatalog } from './seed';
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Catálogos (datos de la APP, no del documento: los mismos para todas las listas)
+// Catalogs (APP data, not document data: the same for every list)
 
-/** Fase 9l: <taxable> null = como su grupo. */
+/** Phase 9l: <taxable> null = same as its group. */
 export interface CatalogProduct { id: string; name: string; unit: string; uses: number; taxable: boolean | null }
-/** Fase 9l: <taxable> = sus productos pagan impuestos (la comida, no). */
+/** Phase 9l: <taxable> = its items are taxed (food is not). */
 export interface CatalogGroup { id: string; name: string; emoji: string; taxable: boolean; products: CatalogProduct[] }
 export interface Catalog { id: string; name: string; emoji: string; groups: CatalogGroup[] }
-/** Fase 9l: una tienda, con los catálogos de lo que vende (p.ej. supermercado y ferretería) y su impuesto si es otro. */
+/** Phase 9l: a store, with the catalogs of what it sells (e.g. grocery and hardware) and its own tax if different. */
 export interface Shop { id: string; name: string; emoji: string; catalogIds: string[]; tax: number | null }
-/** Fase 9l: ajustes del plugin. <taxRate> en % (8.25 = 8,25 %). */
+/** Phase 9l: plugin settings. <taxRate> in % (8.25 = 8.25 %). */
 export interface Settings { taxRate: number; currency: string }
-/** Fase 11e: una cuenta de la calculadora (la historia, la más nueva primero). */
+/** Phase 11e: a calculator entry (the history, newest first). */
 export interface CalcEntry { expr: string; result: string; at: number }
 export const CALC_HISTORY_MAX = 100;
 
 export interface AppStore {
   version: 2; catalogs: Catalog[]; lastCatalog: string | null; shops: Shop[]; lastShop: string | null; settings: Settings;
-  /** Fase 11e: las últimas cuentas de la calculadora (de todas las listas). */
+  /** Phase 11e: the latest calculator entries (from all lists). */
   calcHistory: CalcEntry[];
 }
 
@@ -47,7 +47,7 @@ export function emptyCatalog(name: string, emoji = '🛍️'): Catalog {
   return { id: newId(), name, emoji, groups: [] };
 }
 
-/** Los datos de la app de este plugin, con el supermercado la primera vez. */
+/** This plugin's app data, with the grocery catalog the first time. */
 export function normalizeStore(raw: unknown, lang: Lang): AppStore {
   const store = raw as Partial<AppStore> | null;
   const settings: Settings = { taxRate: 0, currency: '$', ...(store?.settings ?? {}) };
@@ -56,7 +56,7 @@ export function normalizeStore(raw: unknown, lang: Lang): AppStore {
       c.id ||= newId(); c.groups ??= []; c.emoji ||= '🛍️';
       for (const gr of c.groups) {
         gr.id ||= newId(); gr.products ??= []; gr.emoji ||= '•';
-        // Fase 9l: un catálogo de antes no sabe de impuestos: los grupos de comida de las plantillas, sin.
+        // Phase 9l: an older catalog knows nothing about taxes: the template food groups get none.
         if (typeof gr.taxable !== 'boolean') gr.taxable = !FOOD_GROUPS.has(gr.name.trim().toLocaleLowerCase());
         for (const p of gr.products) { p.id ||= newId(); p.unit ??= ''; p.uses ??= 0; p.taxable ??= null; }
       }
@@ -85,7 +85,7 @@ export function findProduct(catalog: Catalog | null, name: string): { group: Cat
   return undefined;
 }
 
-/** Productos del catálogo que contienen el texto (primero los que empiezan con él, después los más usados). */
+/** Catalog items containing the text (those starting with it first, then the most used). */
 export function searchProducts(catalog: Catalog | null, text: string, max = 8) {
   const n = norm(text);
   if (!n || !catalog) return [];
@@ -100,13 +100,13 @@ export function searchProducts(catalog: Catalog | null, text: string, max = 8) {
   return found.sort((a, b) => a.rank - b.rank).slice(0, max);
 }
 
-/** Los más usados del catálogo. */
+/** The most used catalog items. */
 export function frequent(catalog: Catalog | null, max = 12) {
   const all = (catalog?.groups ?? []).flatMap((group) => group.products.filter((p) => p.uses > 0).map((product) => ({ group, product })));
   return all.sort((a, b) => b.product.uses - a.product.uses).slice(0, max);
 }
 
-/** Agrega al catálogo un grupo (si no está, con ese emoji) y un producto (si no está). Devuelve si cambió algo. */
+/** Adds a group (if missing, with that emoji) and an item (if missing) to the catalog. Returns whether anything changed. */
 export function addToCatalog(catalog: Catalog, groupName: string, emoji: string, productName?: string, unit = '', taxable: boolean | null = null): boolean {
   let changed = false;
   let group = findGroup(catalog, groupName);
@@ -125,13 +125,13 @@ export function addToCatalog(catalog: Catalog, groupName: string, emoji: string,
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// La lista (datos del NODO). Cada producto lleva el nombre y el emoji de su grupo: así la lista se entiende aunque se abra
-// en otro Docodez con otros catálogos (y se ofrece agregar lo que falte).
+// The list (NODE data). Each item carries its group's name and emoji, so the list still makes sense when opened in
+// another Docodez with other catalogs (and offers to add whatever is missing).
 
 export interface Offer { id: string; store: string; price: number | null; amount: number | null; unit: string }
 /**
- * Un producto de la lista. Fase 9l: <shop> = la tienda donde se piensa comprar (o donde se compró: la de la oferta elegida
- * como precio de compra); <taxable> = paga impuestos (se copia del catálogo al agregarlo, así viaja con la lista).
+ * A list item. Phase 9l: <shop> = the store where it will be bought (or was bought: that of the offer chosen as
+ * purchase price); <taxable> = it is taxed (copied from the catalog when added, so it travels with the list).
  */
 export interface ListItem {
   id: string; name: string; group: string; emoji: string;
@@ -142,9 +142,9 @@ export interface ListGroup { name: string; emoji: string }
 export interface ShoppingList {
   version: 1; catalogId: string | null; catalogName: string; groups: ListGroup[]; items: ListItem[];
   currency: string; hideDone: boolean;
-  /** Fase 9l: cómo se ve la lista: por grupo (como en el catálogo) o por tienda. */
+  /** Phase 9l: how the list is shown: by group (as in the catalog) or by store. */
   view: 'group' | 'shop';
-  /** Fase 9l: las tiendas que usa la lista (nombre y emoji), para que viajen con ella como los grupos. */
+  /** Phase 9l: the stores the list uses (name and emoji), so they travel with it like the groups. */
   shops: ListGroup[];
 }
 
@@ -168,7 +168,7 @@ export function normalizeList(raw: unknown): ShoppingList {
   };
 }
 
-/** Recuerda el grupo en la lista (nombre y emoji), para que viaje con ella. */
+/** Remembers the group in the list (name and emoji), so it travels with it. */
 export function rememberGroup(list: ShoppingList, name: string, emoji: string): void {
   if (!name) return;
   const existing = list.groups.find((gr) => norm(gr.name) === norm(name));
@@ -176,7 +176,7 @@ export function rememberGroup(list: ShoppingList, name: string, emoji: string): 
   else list.groups.push({ name, emoji });
 }
 
-/** Fase 9l: lo mismo con una tienda. */
+/** Phase 9l: same for a store. */
 export function rememberShop(list: ShoppingList, name: string, emoji: string): void {
   if (!name) return;
   const existing = list.shops.find((s) => norm(s.name) === norm(name));
@@ -184,14 +184,14 @@ export function rememberShop(list: ShoppingList, name: string, emoji: string): v
   else list.shops.push({ name, emoji });
 }
 
-/** Fase 9l: si un producto paga impuestos según el catálogo: el del producto, si no el de su grupo; si no está, sí. */
+/** Phase 9l: whether an item is taxed per the catalog: the item's setting, else its group's; if not found, yes. */
 export function taxableIn(catalog: Catalog | null, groupName: string, productName: string): boolean {
   const found = findProduct(catalog, productName);
   if (found && norm(found.group.name) === norm(groupName)) return found.product.taxable ?? found.group.taxable;
   return findGroup(catalog, groupName)?.taxable ?? true;
 }
 
-/** "2 kg tomates", "tomates 2kg", "3 x leche", "leche x3": la cantidad y la unidad escritas junto al nombre. */
+/** "2 kg tomates", "tomates 2kg", "3 x leche", "leche x3": the quantity and unit typed next to the name. */
 export function parseQuick(text: string): { name: string; qty: number | null; unit: string } {
   const unitRe = '(kg|g|gr|lb|lbs|oz|l|lt|ml|gal|u|un|pcs?|pack|doc|dozen|m|cm|ft)';
   const num = '(\\d+(?:[.,]\\d+)?)';
@@ -213,11 +213,11 @@ const ALIASES: Record<string, string> = { gr: 'g', lbs: 'lb', lt: 'L', l: 'L', u
 const unitAlias = (u: string) => ALIASES[u.toLowerCase()] ?? u;
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Unidades y precios
+// Units and prices
 
 export const UNITS = ['', 'u', 'kg', 'g', 'lb', 'oz', 'L', 'ml', 'gal', 'fl oz', 'dozen', 'pack', 'm', 'cm', 'ft'];
 
-/** Cada unidad en su dimensión, con su factor a la base (g, ml, m, unidades). */
+/** Each unit in its dimension, with its factor to the base unit (g, ml, m, units). */
 const DIM: Record<string, [string, number]> = {
   g: ['mass', 1], kg: ['mass', 1000], lb: ['mass', 453.59237], oz: ['mass', 28.349523125],
   ml: ['vol', 1], L: ['vol', 1000], gal: ['vol', 3785.411784], 'fl oz': ['vol', 29.5735295625],
@@ -227,7 +227,7 @@ const DIM: Record<string, [string, number]> = {
 
 export const sameDimension = (a: string, b: string) => (DIM[a]?.[0] ?? a) === (DIM[b]?.[0] ?? b);
 
-/** Cuánto es <amount> <from> en <to> (null si no se pueden comparar). */
+/** How much <amount> <from> is in <to> (null if they cannot be compared). */
 export function convert(amount: number, from: string, to: string): number | null {
   const f = DIM[from], t = DIM[to];
   if (!f || !t) return from === to ? amount : null;
@@ -235,7 +235,7 @@ export function convert(amount: number, from: string, to: string): number | null
   return amount * f[1] / t[1];
 }
 
-/** La unidad en que conviene mostrar el precio por cantidad: kg para pesos, L para volumen, m para largos. */
+/** The unit to show the unit price in: kg for weight, L for volume, m for length. */
 export function displayUnit(unit: string): string {
   const d = DIM[unit]?.[0];
   if (d === 'mass') return unit === 'lb' || unit === 'oz' ? 'lb' : 'kg';
@@ -245,7 +245,7 @@ export function displayUnit(unit: string): string {
   return unit;
 }
 
-/** El precio por una unidad de <per> de una oferta (p.ej. $/kg), o null si faltan datos o no se pueden comparar. */
+/** An offer's price per one <per> unit (e.g. $/kg), or null if data is missing or they cannot be compared. */
 export function unitPrice(offer: Offer, per: string): number | null {
   if (offer.price == null) return null;
   const amount = offer.amount ?? 1;
@@ -254,13 +254,13 @@ export function unitPrice(offer: Offer, per: string): number | null {
   return inPer == null || inPer <= 0 ? null : offer.price / inPer;
 }
 
-/** La unidad para comparar las ofertas de un producto: la del producto si tiene, si no la de la primera oferta. */
+/** The unit to compare an item's offers in: the item's unit if it has one, else the first offer's. */
 export function compareUnit(item: ListItem): string {
   const base = item.unit || item.offers.find((o) => o.price != null)?.unit || '';
   return displayUnit(base);
 }
 
-/** La oferta más barata por cantidad (comparables), o la única. */
+/** The cheapest offer per quantity (among comparable ones), or the only one. */
 export function bestOffer(item: ListItem): Offer | null {
   const per = compareUnit(item);
   let best: Offer | null = null;
@@ -273,12 +273,12 @@ export function bestOffer(item: ListItem): Offer | null {
   return best ?? item.offers.find((o) => o.price != null) ?? null;
 }
 
-/** La oferta que se usa para la cuenta: la elegida, o la más barata. */
+/** The offer used for the total: the chosen one, or the cheapest. */
 export const usedOffer = (item: ListItem) => item.offers.find((o) => o.id === item.chosen && o.price != null) ?? bestOffer(item);
 
 /**
- * Lo que va a costar el producto: con la oferta usada. Si el producto y la oferta tienen unidades comparables, precio por
- * cantidad × cantidad pedida ("1.5 kg a $3/kg"); si el producto no tiene unidad, la cantidad es de paquetes ("3 × $2").
+ * What the item will cost, using the offer in use. If the item and the offer have comparable units, unit price ×
+ * requested quantity ("1.5 kg at $3/kg"); if the item has no unit, the quantity counts packages ("3 × $2").
  */
 export function itemCost(item: ListItem): number | null {
   const offer = usedOffer(item);
@@ -292,7 +292,7 @@ export function itemCost(item: ListItem): number | null {
   return offer.price * qty;
 }
 
-/** Fase 9l: el impuesto de una tienda (el suyo, o el general), en %. */
+/** Phase 9l: a store's tax (its own, or the general one), in %. */
 export function taxRateFor(store: AppStore, shopName: string): number {
   const shop = findShop(store, shopName);
   return shop?.tax ?? store.settings.taxRate ?? 0;
@@ -301,7 +301,7 @@ export function taxRateFor(store: AppStore, shopName: string): number {
 export const findShop = (store: AppStore, name: string): Shop | undefined =>
   name ? store.shops.find((s) => norm(s.name) === norm(name)) : undefined;
 
-/** Fase 9l: lo que paga de impuesto un producto (0 si no paga, o sin precio). */
+/** Phase 9l: the tax an item pays (0 if untaxed or without a price). */
 export function itemTax(item: ListItem, rate: number): number {
   const cost = itemCost(item);
   return cost == null || !item.taxable ? 0 : cost * rate / 100;
@@ -310,7 +310,7 @@ export function itemTax(item: ListItem, rate: number): number {
 export interface Sum { subtotal: number; tax: number; total: number; priced: number; count: number; done: number;
   cartSubtotal: number; cartTax: number; cartTotal: number }
 
-/** Las cuentas de unos productos: subtotal, impuestos (con la tasa de la tienda de cada uno), total, y lo del carro. */
+/** Totals for some items: subtotal, tax (at each item's store rate), total, and the same for the cart. */
 export function sum(items: ListItem[], rateOf: (shop: string) => number): Sum {
   const s: Sum = { subtotal: 0, tax: 0, total: 0, priced: 0, count: items.length, done: 0, cartSubtotal: 0, cartTax: 0, cartTotal: 0 };
   for (const it of items) {
@@ -333,7 +333,7 @@ export function totals(list: ShoppingList, rateOf: (shop: string) => number = ()
   return { ...s, all: s.subtotal, cart: s.cartSubtotal };
 }
 
-/** Fase 9l: el orden de las tiendas en la lista: el de las tiendas de la app; las que no están, después; sin tienda, al final. */
+/** Phase 9l: store order in the list: the app's store order; unknown stores next; no store last. */
 export function shopOrder(list: ShoppingList, store: AppStore): string[] {
   const seen = new Set<string>();
   const order: string[] = [];
@@ -348,26 +348,26 @@ export function shopOrder(list: ShoppingList, store: AppStore): string[] {
 export const money = (v: number | null, currency: string) =>
   v == null ? '' : currency + (Math.round(v * 100) / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-/** "1.5 kg", "3"; sin cantidad, nada (la unidad sola no dice cuánto). */
+/** "1.5 kg", "3"; no quantity, nothing (a unit alone does not say how much). */
 export const qtyText = (qty: number | null, unit: string) =>
   qty == null ? '' : `${+qty.toFixed(3)}${unit && unit !== 'u' ? ' ' + unit : ''}`;
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Lista y catálogo juntos
+// List and catalog together
 
-/** El catálogo de la lista: el suyo (por id o por nombre), o el último usado. */
+/** The list's catalog: its own (by id or by name), or the last one used. */
 export function catalogOf(store: AppStore, list: ShoppingList): Catalog | null {
   return store.catalogs.find((c) => c.id === list.catalogId)
     ?? (list.catalogName ? store.catalogs.find((c) => norm(c.name) === norm(list.catalogName)) : undefined)
     ?? store.catalogs.find((c) => c.id === store.lastCatalog) ?? store.catalogs[0] ?? null;
 }
 
-/** Lo de la lista que no está en el catálogo (grupos y productos), p.ej. una lista que mandó otra persona. */
+/** What the list has that the catalog lacks (groups and items), e.g. a list sent by someone else. */
 export function missingInCatalog(list: ShoppingList, catalogs: Catalog[]) {
   const groups = new Map<string, { name: string; emoji: string; taxable: boolean; products: { name: string; unit: string; taxable: boolean }[] }>();
   for (const it of list.items) {
     if (!it.group || !it.name) continue;
-    // Fase 9l: una lista puede mezclar catálogos (una tienda con súper y ferretería): basta con que esté en alguno.
+    // Phase 9l: a list can mix catalogs (a store with grocery and hardware): being in any of them is enough.
     const known = catalogs.some((c) => findGroup(c, it.group)?.products.some((p) => norm(p.name) === norm(it.name)));
     if (known) continue;
     const key = norm(it.group);
@@ -379,7 +379,7 @@ export function missingInCatalog(list: ShoppingList, catalogs: Catalog[]) {
   return [...groups.values()];
 }
 
-/** El orden de los grupos en la lista: el del catálogo; los que no están, después (en el orden en que aparecen). */
+/** Group order in the list: the catalog's; unknown groups next (in the order they appear). */
 export function groupOrder(list: ShoppingList, catalog: Catalog | null): string[] {
   const seen = new Set<string>();
   const order: string[] = [];

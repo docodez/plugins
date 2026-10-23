@@ -1,21 +1,21 @@
-// Los textos de la pantalla (el idioma sale de docodez.context.language).
+// UI strings (the language comes from docodez.context.language).
 import type { PartKind } from './model';
 
 const es = {
-  // pestañas
+  // tabs
   tabSummary: 'Resumen', tabFuel: 'Gasolina', tabRepairs: 'Reparaciones', tabParts: 'Accesorios', tabTrips: 'Viajes', tabNotes: 'Notas',
-  // el carro
+  // the car
   newCar: 'Tu carro', newCarHint: 'Ponle nombre, marca y modelo (✏️).', editCar: 'El carro', settings: 'Unidades y moneda',
   carName: 'Nombre (como le dices; opcional)', year: 'Año', make: 'Marca', model: 'Modelo', trim: 'Versión', vin: 'VIN (número de serie)',
   readVin: 'Leer el VIN', vinUnknown: 'No se pudo leer ese VIN (17 caracteres, sin I, O ni Q).', vinRead: 'Leído del VIN: revisa los datos.',
   plate: 'Placa / matrícula', color: 'Color', fuelType: 'Combustible', engine: 'Motor', tank: (v: string) => `Tanque (${v})`,
   purchaseDate: 'Fecha de compra', purchaseOdometer: (d: string) => `${d} al comprarlo`, carNotes: 'Notas', carPhoto: 'Foto del carro',
   modelsHint: 'Sugerencias de la base pública de EE. UU. (NHTSA); puedes escribir cualquiera.',
-  // unidades
+  // units
   distance: 'Distancia', volume: 'Volumen', economy: 'Consumo', per100: (v: string, d: string) => `${v}/100 ${d}`,
   perVolume: (v: string, d: string) => (d === 'mi' && v === 'gal' ? 'mpg' : `${d}/${v}`), currency: 'Moneda (símbolo)',
   convertAsk: 'Las cantidades ya anotadas se pasan a las nuevas unidades. ¿Seguir?', liters: 'Litros', gallons: 'Galones (EE. UU.)',
-  // comunes
+  // common
   date: 'Fecha', odometer: (d: string) => `Odómetro (${d})`, odometerShort: 'Odómetro', cost: 'Costo', note: 'Nota', notes: 'Notas',
   files: 'Fotos y archivos', camera: '📷 Cámara', photo: '🖼️ Foto', file: '📄 Archivo', save: 'Guardar', cancel: 'Cancelar', ok: 'Aceptar',
   delete: 'Borrar', close: 'Cerrar', confirmDelete: '¿Borrarlo? (también sus fotos y archivos)', today: 'Hoy', none: 'Nada todavía.',
@@ -25,32 +25,32 @@ const es = {
   readPhoto: '📷 Leer de una foto', readOdometer: '📷 Leer el tablero', readPump: '📷 Leer la bomba o el recibo',
   noAi: 'La foto quedó guardada. Para leerla sola hace falta un proveedor de AI (Docodez → Configuración → Proveedores de AI).',
   aiRead: 'Leído de la foto: revisa los valores.', aiNothing: 'No se encontraron esos datos en la foto.', aiError: 'No se pudo leer la foto: ',
-  // gasolina
+  // fuel
   addFuel: '+ Carga', fuelEntry: 'Carga de combustible', quantity: (v: string) => `Cantidad (${v})`, pricePer: (c: string, v: string) => `Precio por ${v} (${c})`,
   total: (c: string) => `Total (${c})`, full: 'Llené el tanque', fullHint: 'Así se calcula el consumo: entre dos tanques llenos.',
   missed: 'Faltó anotar una carga antes de esta', station: 'Gasolinera', partial: 'parcial', fullShort: 'lleno',
   avg: 'Consumo medio', last: 'Último', best: 'Mejor', worst: 'Peor', costPer: (d: string) => `Costo por ${d}`, spent: 'Gastado',
   totalVolume: 'Cargado', avgPrice: 'Precio medio', loads: (n: number) => `${n} cargas`, needTwoFull: 'El consumo aparece con dos cargas de tanque lleno (con el odómetro).',
   computed: 'calculado', trend: 'Consumo por tanque',
-  // reparaciones
+  // repairs
   addRepair: '+ Reparación', repair: 'Reparación', title: 'Título', repairTitle: 'Qué se arregló', start: 'Empezó', end: 'Terminó',
   inProgress: 'en curso', mechanic: 'Mecánico', shop: 'Taller', repairsTotal: 'Total en reparaciones', notesPlaceholder: 'Qué se cambió, qué dijeron, garantía...',
-  // accesorios
+  // parts and accessories
   addPart: '+ Pieza o accesorio', part: 'Pieza o accesorio', kind: 'Tipo', partName: 'Qué es', brand: 'Marca', spec: 'Medida / número de parte',
   use: 'Para qué / dónde', usePlaceholder: 'invierno, delantera izquierda, carrera...', installed: 'Puesta / comprada', where: 'Dónde se compra',
-  // viajes
+  // trips
   addTrip: '+ Viaje', trip: 'Viaje', tripTitle: 'Viaje', leave: 'Salida', back: 'Vuelta', from: 'Desde', to: 'Hasta',
   odoStart: 'Odómetro al salir', odoEnd: 'Odómetro al volver', tripsTotal: 'Distancia en viajes',
-  // notas
+  // notes
   addNote: '+ Nota', noteTitle: 'Nota',
-  // resumen
+  // summary
   current: 'Odómetro', byYear: 'Gastos por año', fuel: 'Combustible', repairs: 'Reparaciones', parts: 'Piezas', all: 'Total',
   lastRepair: 'Última reparación', lastFuel: 'Última carga', ago: (n: number) => (n === 0 ? 'hoy' : n === 1 ? 'ayer' : `hace ${n} días`),
   // editor
   bold: 'Negrita', italic: 'Cursiva', underline: 'Subrayado', bullets: 'Lista', numbers: 'Lista numerada', heading: 'Título', link: 'Enlace',
   linkPrompt: 'Dirección del enlace', clear: 'Quitar el formato',
   photoOf: (i: number, n: number) => `${i} de ${n}`,
-  // Fase 11g: mantenimiento
+  // Phase 11g: maintenance
   tabMaint: 'Mantenimiento', addMaint: '+ Mantenimiento', maint: 'Mantenimiento', maintTitle: 'Qué hay que hacer', icon: 'Ícono',
   everyDistance: (d: string) => `Cada (${d})`, everyMonths: 'Cada (meses)', lastTime: 'La última vez', done: '✓ Hecho',
   doneTitle: (x: string) => `${x}: hecho`, addToRepairs: 'Anotarlo también en Reparaciones', presets: 'Sugeridos',
@@ -211,7 +211,7 @@ const PART_USES_FR: Record<PartKind, string[]> = {
 
 export const TEXTS = { es, en, fr };
 
-/** Fase 11g: mantenimientos sugeridos: ícono, título, cada cuántos km (null = no va por distancia), cada cuántos meses. */
+/** Phase 11g: suggested maintenance items: icon, title, every how many km (null = not distance-based), every how many months. */
 type Preset = [string, string, number | null, number | null];
 const P = (icons: string[], titles: string[], km: (number | null)[], months: (number | null)[]): Preset[] =>
   titles.map((title, i) => [icons[i], title, km[i], months[i]]);
@@ -228,7 +228,7 @@ export const MAINT_PRESETS = {
 };
 export const PART_KINDS_TEXT = { es: PART_KIND_ES, en: PART_KIND_EN, fr: PART_KIND_FR };
 export const PART_USES = { es: PART_USES_ES, en: PART_USES_EN, fr: PART_USES_FR };
-/** Las unidades que se ofrecen al crear un carro, según el idioma (el inglés, como en EE. UU.). */
+/** The units offered when creating a car, by language (English uses US units). */
 export const DEFAULT_UNITS = {
   es: { distance: 'km', volume: 'L', economy: 'per100' }, fr: { distance: 'km', volume: 'L', economy: 'per100' },
   en: { distance: 'mi', volume: 'gal', economy: 'perVolume' },

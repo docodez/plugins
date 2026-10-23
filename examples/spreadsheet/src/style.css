@@ -22,7 +22,7 @@ body:not(.editable) .edit { display: none; }
 #sheet.drop { outline: 3px dashed var(--accent); outline-offset: -6px; }
 #empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; opacity: .7; pointer-events: none; z-index: 5; }
 
-/* grilla (grid.ts) */
+/* grid (grid.ts) */
 .grid { display: grid; grid-template-columns: 48px 1fr; grid-template-rows: 24px 1fr; }
 .g-corner { background: var(--hdr); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .g-colhdr, .g-rowhdr { position: relative; overflow: hidden; background: var(--hdr); font-size: 12px; color: var(--muted); user-select: none; }
@@ -43,7 +43,7 @@ body:not(.editable) .edit { display: none; }
 .g-editor { position: absolute; z-index: 3; font: inherit; padding: 0 4px; border: 2px solid var(--sel); outline: none; background: var(--bg); color: var(--fg);
   box-shadow: 0 2px 8px rgba(0,0,0,.25); }
 
-/* pestañas de las hojas, abajo como en Excel */
+/* sheet tabs, at the bottom like in Excel */
 #tabs { display: flex; gap: 2px; padding: 0 8px; background: var(--bar); border-top: 1px solid var(--line); overflow-x: auto; min-height: 32px; align-items: flex-start; }
 #tabs:empty { display: none; }
 .tab { font: inherit; font-size: 13px; padding: 5px 14px; border: 1px solid var(--line); border-top: none; border-radius: 0 0 6px 6px; background: var(--hdr);
@@ -55,7 +55,7 @@ body:not(.editable) .edit { display: none; }
 .tab-del.confirm { opacity: 1; color: #e53935; font-weight: 600; }
 .tab-rename { font: inherit; font-size: 13px; padding: 4px 8px; border: 2px solid var(--accent); border-top: none; border-radius: 0 0 6px 6px; width: 140px; }
 
-/* la lista de archivos (sdk/picker.ts) */
+/* the file list (sdk/picker.ts) */
 .pick { position: relative; display: inline-block; }
 .pick > button { font: inherit; padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); min-height: 32px;
   cursor: pointer; max-width: 50vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

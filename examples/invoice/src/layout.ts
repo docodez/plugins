@@ -1,7 +1,7 @@
-// El diseño de la factura: arma cada página como una lista de dibujos (rectángulos, líneas, textos, el logo) en puntos (1/72
-// de pulgada, como un PDF). Lo mismo se dibuja en SVG (vista previa, página web), en un canvas (imagen) y en el PDF: la
-// factura sale igual en los tres. Las medidas de los textos son las de Arial, que tiene los mismos anchos que Helvetica
-// (la letra del PDF).
+// The invoice layout: builds each page as a list of drawing operations (rectangles, lines, text, the logo) in points (1/72
+// of an inch, like a PDF). The same list is drawn as SVG (preview, web page), on a canvas (image) and in the PDF, so the
+// invoice looks the same in all three. Text is measured with Arial, which has the same widths as Helvetica (the PDF
+// font).
 import type { DocTexts } from './i18n';
 import type { Column, Invoice, Totals } from './model';
 import { itemAmount, parseNum, taxIdLabelFor } from './model';
@@ -17,14 +17,14 @@ export interface Page { w: number; h: number; ops: Op[] }
 export const PAGE_SIZES = { letter: [612, 792], a4: [595.28, 841.89] } as const;
 
 let ctx: CanvasRenderingContext2D | null = null;
-/** El ancho de un texto en puntos (Arial = Helvetica). */
+/** The width of a text in points (Arial = Helvetica). */
 export function measure(text: string, size: number, bold = false): number {
   ctx ??= document.createElement('canvas').getContext('2d')!;
   ctx.font = `${bold ? 'bold ' : ''}100px Arial, Helvetica, sans-serif`;
   return (ctx.measureText(text).width * size) / 100;
 }
 
-/** El texto cortado en renglones de hasta <width> (respeta los saltos de línea; corta palabras muy largas). */
+/** The text wrapped into lines up to <width> wide (keeps line breaks; splits very long words). */
 export function wrap(text: string, size: number, width: number, bold = false): string[] {
   const out: string[] = [];
   for (const para of String(text ?? '').split(/\r?\n/)) {
@@ -46,7 +46,7 @@ export function wrap(text: string, size: number, width: number, bold = false): s
   return out;
 }
 
-/** Mezcla un color con blanco (0 = el color, 1 = blanco). */
+/** Mixes a color with white (0 = the color, 1 = white). */
 export function tint(hex: string, amount: number): string {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex);
   if (!m) return '#f3f4f6';
@@ -61,9 +61,9 @@ const LINE = '#d8dde3';
 
 export interface LayoutInput {
   inv: Invoice; totals: Totals; doc: DocTexts; money: (v: number) => string; dateText: (d: string) => string;
-  /** Ancho / alto del logo (para que no se deforme), o null sin logo. */
+  /** Logo width / height (so it keeps its shape), or null with no logo. */
   logoAspect: number | null;
-  /** Fase 12a: en la versión gratis de Docodez, "Hecho con Docodez" en el pie de cada página. */
+  /** Phase 12a: in the free version of Docodez, "Made with Docodez" in the footer of every page. */
   madeWith?: string;
 }
 
@@ -90,7 +90,7 @@ export function layoutInvoice(input: LayoutInput): Page[] {
   };
   const text = (x: number, yy: number, size: number, s: string, opts: { bold?: boolean; color?: string; align?: Align } = {}) =>
     ops.push({ t: 'text', x, y: yy, size, text: s, bold: opts.bold, color: opts.color ?? DARK, align: opts.align });
-  /** Varios renglones desde <top>; devuelve el alto usado. */
+  /** Several lines starting at <top>; returns the height used. */
   const lines = (x: number, top: number, rows: string[], size: number, opts: { bold?: boolean; color?: string; align?: Align } = {}) => {
     const lh = size * 1.32;
     rows.forEach((r, i) => text(x, top + size * 0.82 + i * lh, size, r, opts));
@@ -105,7 +105,7 @@ export function layoutInvoice(input: LayoutInput): Page[] {
     return { w, h };
   };
 
-  // --- el negocio y el cliente --------------------------------------------------------------------------------------------
+  // --- the business and the client -----------------------------------------------------------------------------------------
   const b = inv.from;
   const businessRows = (maxW: number) => [
     ...wrap(b.address, 9, maxW),
@@ -184,7 +184,7 @@ export function layoutInvoice(input: LayoutInput): Page[] {
     paidStamp(right, y + hMeta + 4);
     y += Math.max(hTo, hMeta + 30) + 12;
   } else {
-    // clásica y llamativa: el logo y el negocio a la izquierda; el título a la derecha
+    // classic and bold: the logo and the business on the left; the title on the right
     const lg = logo(left, y, 160, 64);
     let hb = lg.h ? lg.h + 8 : 0;
     hb += lines(left, y + hb, wrap(b.name.trim(), 13, width * 0.55, true), 13, { bold: true });
@@ -199,7 +199,7 @@ export function layoutInvoice(input: LayoutInput): Page[] {
     y += toBlock(left, y, width * 0.6) + 14;
   }
 
-  // --- la tabla ------------------------------------------------------------------------------------------------------------
+  // --- the table ----------------------------------------------------------------------------------------------------------
   const cols = inv.columns;
   const cellText = (col: Column, raw: string, amount: number | null): string => {
     if (col.kind === 'amount') return amount == null ? '' : money(amount);
@@ -222,7 +222,7 @@ export function layoutInvoice(input: LayoutInput): Page[] {
   const textCols = cols.filter((col) => !isNum(col)).length;
   let rest = width - widths.reduce((a, w) => a + w, 0);
   if (textCols && rest < 110 * textCols) {
-    // Mucho número: se achican los números (los textos se quedan con al menos 110 pt).
+    // Too many number columns: shrink them (text columns keep at least 110 pt).
     const numTotal = widths.reduce((a, w) => a + w, 0);
     const scale = Math.max(0.5, (width - 110 * textCols) / numTotal);
     for (let i = 0; i < widths.length; i++) widths[i] *= scale;
@@ -259,7 +259,7 @@ export function layoutInvoice(input: LayoutInput): Page[] {
     ops.push({ t: 'line', x1: left, y1: y, x2: right, y2: y, color: LINE, lw: 0.5 });
   });
 
-  // --- los totales ---------------------------------------------------------------------------------------------------------
+  // --- the totals ---------------------------------------------------------------------------------------------------------
   const pct = (v: number) => `${v.toLocaleString(inv.language, { maximumFractionDigits: 3 })}%`;
   const totalRows: [string, string][] = [[doc.subtotal, money(totals.subtotal)]];
   if (totals.discount > 0) totalRows.push([inv.discount.type === 'percent' ? `${doc.discount} (${pct(inv.discount.value ?? 0)})` : doc.discount, '−' + money(totals.discount)]);
@@ -295,7 +295,7 @@ export function layoutInvoice(input: LayoutInput): Page[] {
     y += 34;
   }
 
-  // --- notas y condiciones -------------------------------------------------------------------------------------------------
+  // --- notes and terms -----------------------------------------------------------------------------------------------------
   for (const [label, body] of [[doc.notes, inv.notes], [doc.terms, inv.terms]] as const) {
     if (!body.trim()) continue;
     const rowsN = wrap(body.trim(), 9, width);
@@ -314,7 +314,7 @@ export function layoutInvoice(input: LayoutInput): Page[] {
     }
   }
 
-  // --- pie: página x de n, y "Hecho con Docodez" en la versión gratis ---------------------------------------------------------
+  // --- footer: page x of n, and "Made with Docodez" in the free version ------------------------------------------------------
   if (input.madeWith) {
     for (const p of pages) p.ops.push({ t: 'text', x: W / 2, y: H - 14, size: 7.5, text: input.madeWith, color: '#9aa0a6', align: 'center' });
   }

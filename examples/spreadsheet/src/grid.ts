@@ -1,7 +1,7 @@
-// La grilla de una hoja: virtual (solo se dibujan las celdas que se ven: una hoja de miles de filas anda igual), con
-// encabezados de filas y columnas, selección con el mouse o las flechas, edición en la celda (escribir reemplaza; F2 o
-// doble clic edita lo que hay; Enter / Tab confirman y avanzan; Esc cancela), Supr borra, copiar y pegar bloques (TSV,
-// como Excel) y ancho de columnas arrastrando el borde del encabezado.
+// A sheet's grid: virtual (only visible cells are drawn, so a sheet with thousands of rows works the same), with
+// row and column headers, selection with the mouse or arrow keys, in-cell editing (typing replaces; F2 or
+// double-click edits the content; Enter / Tab confirm and move; Esc cancels), Del clears, copy and paste of blocks (TSV,
+// like Excel) and column widths by dragging the header border.
 import { XLSX, display, raw, setCell } from './book';
 
 const ROW_HEIGHT = 24;
@@ -10,9 +10,9 @@ const DEFAULT_WIDTH = 96;
 export interface GridOptions {
   editable: () => boolean;
   decimalComma: () => boolean;
-  /** Algo cambió en la hoja (para guardar). */
+  /** Something changed in the sheet (to save). */
   onChange: () => void;
-  /** Se movió la selección (para la barra de fórmulas). */
+  /** The selection moved (for the formula bar). */
   onSelect: (address: string, rawValue: string) => void;
 }
 
@@ -76,7 +76,7 @@ export class Grid {
     this.notifySelect();
   }
 
-  /** Lo que tiene la hoja + un margen para seguir escribiendo más abajo / más a la derecha. */
+  /** The sheet's content + a margin to keep typing further down / to the right. */
   private measure(): void {
     const range = this.ws?.['!ref'] ? XLSX.utils.decode_range(this.ws['!ref']) : { e: { r: -1, c: -1 } };
     this.rows = Math.max(range.e.r + 1 + 50, 100, this.sel.r + 20);
@@ -138,7 +138,7 @@ export class Grid {
     if (this.editor) this.placeEditor();
   }
 
-  // --- selección --------------------------------------------------------------------------------------------------
+  // --- selection --------------------------------------------------------------------------------------------------
 
   private cellAt(e: MouseEvent): { r: number; c: number } | null {
     const el = (e.target as HTMLElement).closest('.g-cell') as HTMLElement | null;
@@ -179,7 +179,7 @@ export class Grid {
     this.opts.onSelect(columnName(this.sel.c) + (this.sel.r + 1), this.rawOf(cell));
   }
 
-  /** Un CSV con coma decimal (el de Excel en español) muestra y edita los números con coma, como en el archivo. */
+  /** A CSV with decimal comma (from Spanish Excel) shows and edits numbers with a comma, as in the file. */
   private shown(cell: XLSX.CellObject | undefined): string {
     return this.opts.decimalComma() && cell?.t === 'n' && !cell.z ? String(cell.v).replace('.', ',') : display(cell);
   }
@@ -188,9 +188,9 @@ export class Grid {
     return this.opts.decimalComma() && cell?.t === 'n' && !cell.f ? String(cell.v).replace('.', ',') : raw(cell);
   }
 
-  // --- edición ----------------------------------------------------------------------------------------------------
+  // --- editing ----------------------------------------------------------------------------------------------------
 
-  /** Empieza a editar la celda elegida: con lo que tiene (F2, doble clic) o vacía (se empezó a escribir). */
+  /** Starts editing the selected cell: with its content (F2, double-click) or empty (the user started typing). */
   startEdit(keep: boolean, initial = ''): void {
     if (!this.ws || !this.opts.editable()) return;
     this.cancelEdit();
@@ -199,7 +199,7 @@ export class Grid {
     input.spellcheck = false;
     input.value = keep ? this.rawOf(this.ws[XLSX.utils.encode_cell(this.sel)] as XLSX.CellObject | undefined) : initial;
     this.editor = input;
-    this.sizer.appendChild(input); // fuera de .g-cells: esa capa se vuelve a dibujar al desplazar
+    this.sizer.appendChild(input); // outside .g-cells: that layer is redrawn on scroll
     this.placeEditor();
     input.focus();
     input.setSelectionRange(input.value.length, input.value.length);
@@ -233,7 +233,7 @@ export class Grid {
     input?.remove();
   }
 
-  /** Pone un valor (desde la barra de fórmulas o al pegar). */
+  /** Sets a value (from the formula bar or when pasting). */
   setValue(r: number, c: number, text: string): void {
     if (!this.ws || !this.opts.editable()) return;
     const addr = XLSX.utils.encode_cell({ r, c });
@@ -290,13 +290,13 @@ export class Grid {
     this.select(this.sel.r + dr, this.sel.c + dc);
   }
 
-  /** Ctrl+flecha: al borde de lo escrito. */
+  /** Ctrl+arrow: to the edge of the data. */
   private jump([dr, dc]: [number, number]): void {
     const range = this.ws?.['!ref'] ? XLSX.utils.decode_range(this.ws['!ref']) : { e: { r: 0, c: 0 } };
     this.select(dr < 0 ? 0 : dr > 0 ? range.e.r : this.sel.r, dc < 0 ? 0 : dc > 0 ? range.e.c : this.sel.c);
   }
 
-  // --- copiar y pegar ---------------------------------------------------------------------------------------------
+  // --- copy and paste ---------------------------------------------------------------------------------------------
 
   private onCopy(e: ClipboardEvent): void {
     if (this.editor || !this.ws) return;
@@ -304,7 +304,7 @@ export class Grid {
     e.clipboardData?.setData('text/plain', this.shown(this.ws[XLSX.utils.encode_cell(this.sel)] as XLSX.CellObject | undefined));
   }
 
-  /** Pegar texto: un bloque con tabulaciones y saltos de línea (lo que copia Excel) llena desde la celda elegida. */
+  /** Paste text: a block with tabs and line breaks (what Excel copies) fills from the selected cell. */
   private onPaste(e: ClipboardEvent): void {
     if (this.editor || !this.ws || !this.opts.editable()) return;
     const text = e.clipboardData?.getData('text/plain');
@@ -323,7 +323,7 @@ export class Grid {
     this.opts.onChange();
   }
 
-  // --- ancho de columnas ------------------------------------------------------------------------------------------
+  // --- column widths ----------------------------------------------------------------------------------------------
 
   private onHeaderMouseDown(e: MouseEvent): void {
     const handle = (e.target as HTMLElement).closest('.g-resize') as HTMLElement | null;

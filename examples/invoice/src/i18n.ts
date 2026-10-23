@@ -1,15 +1,15 @@
-// Los textos: los de la pantalla (idioma de Docodez) y los de la factura (su propio idioma: se puede facturar en inglés con
-// Docodez en español).
+// Texts: the screen ones (in the Docodez language) and the invoice ones (in the invoice's own language: you can bill in
+// English while Docodez is in Spanish).
 import type { ColumnKind, DocKind, Lang, Status, TemplateId } from './model';
 
 const es = {
-  // barra
+  // toolbar
   edit: 'Editar', preview: 'Vista previa', share: 'Compartir', business: 'Mi negocio', pdf: 'PDF', image: 'Imagen (PNG)', web: 'Página web',
   shareHint: 'Se manda con WhatsApp, SMS, correo... (en Android); en la computadora se guarda.', shared: 'Listo.', saved: 'Guardado.',
   building: 'Armando...', shareError: 'No se pudo: ', noShare: 'Este Docodez no puede compartir archivos desde un plugin: actualízalo.',
   viewMode: 'Modo vista: para cambiar la factura, pasa a modo edición en Docodez.', saveError: 'No se pudo guardar: ',
   welcome: 'Primero, los datos de tu negocio: nombre, logo, dirección, número fiscal. Quedan para todas las facturas.', setup: 'Configurar',
-  // factura
+  // invoice
   docKind: 'Tipo', kinds: { invoice: 'Factura', quote: 'Cotización', receipt: 'Recibo' } as Record<DocKind, string>,
   number: 'Número', date: 'Fecha', dueDate: 'Vence', status: 'Estado', statuses: { draft: 'Borrador', sent: 'Enviada', paid: 'Pagada' } as Record<Status, string>,
   docLanguage: 'Idioma de la factura', currency: 'Moneda', days: (n: number) => `+${n} días`,
@@ -20,18 +20,18 @@ const es = {
   paidAmount: 'Pagado', subtotal: 'Subtotal', total: 'Total', balance: 'Saldo', notes: 'Notas (forma de pago, gracias...)', terms: 'Condiciones',
   look: 'Aspecto', template: 'Plantilla', templates: { classic: 'Clásica', modern: 'Moderna', minimal: 'Simple', bold: 'Llamativa' } as Record<TemplateId, string>,
   accent: 'Color', pageSize: 'Papel', letter: 'Carta', a4: 'A4',
-  // columnas
+  // columns
   columnsTitle: 'Columnas de la tabla', columnsHint: 'Elige qué va en cada renglón. El importe se calcula con la cantidad, el precio y el descuento.',
   colLabel: 'Título (vacío: el de siempre)', colKind: 'Qué es', addColumn: '+ Columna', up: '↑', down: '↓',
   colKinds: { text: 'Texto', number: 'Número', date: 'Fecha', qty: 'Cantidad', price: 'Precio', discount: 'Descuento %', amount: 'Importe' } as Record<ColumnKind, string>,
   makeDefault: 'Usar estas columnas en las facturas nuevas', defaultSaved: 'Las facturas nuevas van a tener estas columnas.',
-  // negocio
+  // business
   businessTitle: 'Mi negocio (para todas las facturas)', businessName: 'Nombre del negocio o tuyo', logo: 'Logo o foto', logoPick: '🖼️ Elegir',
   logoCamera: '📷 Cámara', logoRemove: 'Quitar', website: 'Sitio web', country: 'País', taxIds: 'Números fiscales (van en la factura)',
   addTaxId: '+ Número', defaultTaxes: 'Impuestos de siempre', presets: 'Sugeridos para el país (revisa los porcentajes):',
   numbering: 'Numeración', prefix: 'Prefijo', nextNumber: 'Próximo número', dueDays: 'Vence a los (días)', defaultNotes: 'Notas de siempre', defaultTerms: 'Condiciones de siempre',
   applyToThis: 'Los datos nuevos también se pusieron en esta factura.',
-  // comunes
+  // common
   save: 'Guardar', cancel: 'Cancelar', close: 'Cerrar', ok: 'Aceptar', delete: 'Borrar', today: 'Hoy', none: '—',
   confirmRemoveColumn: '¿Quitar la columna? Lo escrito en ella se pierde.',
   shareText: (kind: string, n: string, total: string, due: string) => `${kind} ${n}: ${total}${due ? ` · vence ${due}` : ''}`,
@@ -102,7 +102,7 @@ const fr: Texts = {
 export const TEXTS = { es, en, fr };
 export type { Texts };
 
-/** Lo que va impreso en la factura, en su idioma. */
+/** What is printed on the invoice, in its language. */
 export interface DocTexts {
   title: Record<DocKind, string>; number: string; date: string; due: Record<DocKind, string>; to: Record<DocKind, string>;
   columns: Record<ColumnKind, string>; subtotal: string; discount: string; total: string; paid: string; balance: string;

@@ -1,7 +1,7 @@
-// La calculadora de la barra: una ventanita con teclado (y el teclado de verdad). Evalúa con un analizador propio (sin
-// eval): números, + − × ÷, %, paréntesis y el signo.
+// The toolbar calculator: a small window with a keypad (and the real keyboard). Evaluates with its own parser (no
+// eval): numbers, + − × ÷, %, parentheses and the sign.
 
-/** Evalúa la expresión; null si no está completa o no se puede. "%": 50% = 0.5; "200+10%" = 220 (como las calculadoras). */
+/** Evaluates the expression; null if it is incomplete or invalid. "%": 50% = 0.5; "200+10%" = 220 (like calculators do). */
 export function evaluate(expr: string): number | null {
   const src = expr.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/,/g, '.').replace(/\s+/g, '');
   let i = 0;
@@ -43,7 +43,7 @@ export function evaluate(expr: string): number | null {
       const start = i;
       const r = product();
       if (r == null) return null;
-      // "200+10%": el porcentaje es del número de la izquierda.
+      // "200+10%": the percentage is of the number on the left.
       const isPercent = /^[\d.]+%$/.test(src.slice(start, i));
       const rr = isPercent ? v * r : r;
       v = op === '+' ? v + rr : v - rr;
@@ -64,7 +64,7 @@ const KEYS = ['C', '⌫', '%', '÷', '7', '8', '9', '×', '4', '5', '6', '−', 
 
 export interface CalcTexts { title: string; close: string; copy: string; history: string; historyEmpty: string; historyClear: string; back: string }
 
-/** Fase 11e: la historia de las cuentas (la guarda quien la crea, en los datos de la app: es de todas las listas). */
+/** Phase 11e: the calculation history (saved by the caller, in the app data: shared by all lists). */
 export interface CalcHistory {
   list(): { expr: string; result: string }[];
   add(expr: string, result: string): void;
@@ -73,7 +73,7 @@ export interface CalcHistory {
 
 const POS_KEY = 'compras.calc.pos';
 
-/** La calculadora, dentro de <host>. Se mueve arrastrando su barra de título (como los diálogos de Docodez). */
+/** The calculator, inside <host>. It moves by dragging its title bar (like Docodez dialogs). */
 export function createCalculator(host: HTMLElement, texts: CalcTexts, history?: CalcHistory) {
   host.classList.add('calc');
   host.innerHTML = `<div class="calc-head"><b>${texts.title}</b><span class="calc-head-buttons">` +
@@ -103,7 +103,7 @@ export function createCalculator(host: HTMLElement, texts: CalcTexts, history?: 
       if (v != null) {
         const expr = display.value.trim();
         hist.textContent = expr + ' = ' + formatNumber(v);
-        // Fase 11e: a la historia (un número solo no es una cuenta).
+        // Phase 11e: add to the history (a lone number is not a calculation).
         if (history && expr !== formatNumber(v)) history.add(expr, formatNumber(v));
         display.value = formatNumber(v);
       }
@@ -125,11 +125,11 @@ export function createCalculator(host: HTMLElement, texts: CalcTexts, history?: 
   });
   host.querySelector<HTMLButtonElement>('.calc-x')!.onclick = () => { host.hidden = true; };
 
-  // --- Fase 11e: la historia ---------------------------------------------------------------------------------------------
+  // --- Phase 11e: history ------------------------------------------------------------------------------------------------
   const showHistory = (on: boolean) => {
     historyPanel.hidden = !on;
     body.hidden = on;
-    // Cambia de alto: que siga entera en la pantalla.
+    // Height changes: keep it fully on screen.
     if (saved && !host.hidden) saved = place(saved.x, saved.y);
     if (!on || !history) return;
     historyList.innerHTML = '';
@@ -149,7 +149,7 @@ export function createCalculator(host: HTMLElement, texts: CalcTexts, history?: 
       const res = document.createElement('b');
       res.textContent = '= ' + entry.result;
       row.append(expr, res);
-      // Elegir una cuenta la vuelve a poner en la calculadora (para seguirla o corregirla).
+      // Picking a calculation puts it back in the calculator (to continue or fix it).
       row.onclick = () => {
         display.value = entry.expr;
         hist.textContent = '';
@@ -164,9 +164,9 @@ export function createCalculator(host: HTMLElement, texts: CalcTexts, history?: 
   host.querySelector<HTMLButtonElement>('.calc-history-back')!.onclick = () => showHistory(false);
   host.querySelector<HTMLButtonElement>('.calc-history-clear')!.onclick = () => { history?.clear(); showHistory(true); };
 
-  // --- Fase 11e: moverla arrastrando la barra de título -------------------------------------------------------------------
-  // El puntero se captura recién cuando empieza a moverse: así los botones de la barra siguen recibiendo el clic. Hasta
-  // entonces se escucha en el documento (el mouse puede salir de la barra con el primer movimiento).
+  // --- Phase 11e: move it by dragging the title bar ------------------------------------------------------------------------
+  // The pointer is captured only once it starts moving, so the title bar buttons still get the click. Until then we
+  // listen on the document (the mouse can leave the bar on the first move).
   const clamp = (x: number, y: number) => ({
     x: Math.min(Math.max(0, x), Math.max(0, window.innerWidth - host.offsetWidth)),
     y: Math.min(Math.max(0, y), Math.max(0, window.innerHeight - host.offsetHeight)),
@@ -179,7 +179,7 @@ export function createCalculator(host: HTMLElement, texts: CalcTexts, history?: 
     return p;
   };
   let saved: { x: number; y: number } | null = null;
-  try { saved = JSON.parse(localStorage.getItem(POS_KEY) || 'null'); } catch { /* sin almacenamiento */ }
+  try { saved = JSON.parse(localStorage.getItem(POS_KEY) || 'null'); } catch { /* no storage */ }
   let drag: { id: number; dx: number; dy: number; sx: number; sy: number; moving: boolean } | null = null;
   head.addEventListener('pointerdown', (e) => {
     if ((e.target as HTMLElement).closest('button') || e.button !== 0) return;
@@ -201,13 +201,13 @@ export function createCalculator(host: HTMLElement, texts: CalcTexts, history?: 
     if (!drag || e.pointerId !== drag.id) return;
     if (drag.moving) {
       host.classList.remove('dragging');
-      try { localStorage.setItem(POS_KEY, JSON.stringify(saved)); } catch { /* sin almacenamiento */ }
+      try { localStorage.setItem(POS_KEY, JSON.stringify(saved)); } catch { /* no storage */ }
     }
     drag = null;
   };
   document.addEventListener('pointerup', endDrag);
   document.addEventListener('pointercancel', endDrag);
-  // Si la ventana se achica (girar el teléfono), que no quede afuera.
+  // If the window shrinks (rotating the phone), keep it inside.
   window.addEventListener('resize', () => { if (saved && !host.hidden) saved = place(saved.x, saved.y); });
 
   return {

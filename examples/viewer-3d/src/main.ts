@@ -1,6 +1,6 @@
-// Visor 3D - plugin de ejemplo de Docodez (ver doc/04-plugins.md). TypeScript + three.js, compilado con Vite.
-// Los modelos son archivos anexos al nodo; los datos del plugin (JSON) guardan cuál se ve, el color, el modo alambre,
-// el giro automático y la vista de la cámara. Al guardar, la página de respaldo del nodo lleva una foto del modelo.
+// 3D Viewer - sample Docodez plugin (see doc/04-plugins.md). TypeScript + three.js, built with Vite.
+// Models are files attached to the node; the plugin data (JSON) stores which one is shown, the color, wireframe mode,
+// auto-rotation and the camera view. On save, the node's fallback page gets a snapshot of the model.
 import {
   Box3, Color, DirectionalLight, HemisphereLight, MathUtils, Mesh, MeshStandardMaterial, Object3D, PerspectiveCamera,
   Scene, Vector3, WebGLRenderer, type BufferGeometry, type Material,
@@ -14,7 +14,7 @@ import { installDevDocodez } from '../../../sdk/docodez-dev';
 import { createColorPicker, createPicker } from '../../../sdk/picker';
 import './style.css';
 
-// Fuera de Docodez (npm run dev) un window.docodez de prueba. En el plugin compilado esto no está.
+// Outside Docodez (npm run dev), a test window.docodez. Not included in the built plugin.
 if (import.meta.env.DEV) installDevDocodez('lynza.visor3d');
 
 const MODEL_TYPES = ['.stl', '.obj', '.glb', '.gltf'];
@@ -30,7 +30,7 @@ const TEXT = {
         loading: 'Chargement...', saved: 'Enregistré', error: "Impossible d'ouvrir : ", model: 'Modèle 3D' },
 };
 
-/** Lo que el plugin guarda en el nodo. */
+/** What the plugin stores in the node. */
 interface ViewerState {
   model: string | null;
   color: string;
@@ -50,7 +50,7 @@ const state: ViewerState = {
   ...((await docodez.getJSON<Partial<ViewerState>>()) ?? {}),
 };
 
-// --- escena ---------------------------------------------------------------------------------------
+// --- scene ----------------------------------------------------------------------------------------
 const view = $('view');
 const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -91,7 +91,7 @@ function applyMaterial(): void {
     const materials: Material[] = Array.isArray(o.material) ? o.material : [o.material];
     for (const m of materials) {
       (m as MeshStandardMaterial).wireframe = state.wireframe;
-      // a los glTF no se les pisa el color propio
+      // glTF models keep their own color
       if (o.userData.plain) (m as MeshStandardMaterial).color.set(state.color);
     }
   });
@@ -102,7 +102,7 @@ function fit(): void {
   const box = new Box3().setFromObject(object);
   const size = box.getSize(new Vector3()).length() || 1;
   const center = box.getCenter(new Vector3());
-  // A la distancia en que la esfera que lo envuelve entra en la vista (con un margen), en diagonal desde arriba.
+  // At the distance where its bounding sphere fits the view (with a margin), diagonally from above.
   const fov = MathUtils.degToRad(camera.fov) * Math.min(1, camera.aspect);
   const distance = (size / 2) / Math.sin(fov / 2) * 1.15;
   controls.target.copy(center);
@@ -164,7 +164,7 @@ async function show(name: string | null, keepCamera: boolean): Promise<void> {
   }
 }
 
-// --- guardar en el nodo ------------------------------------------------------------------------------
+// --- save to the node -------------------------------------------------------------------------------
 let saveTimer = 0;
 function saveLater(): void {
   if (!ctx.editable) return;
@@ -182,7 +182,7 @@ async function save(): Promise<void> {
   }, 1500);
 }
 
-/** La página de respaldo: el nombre del modelo y una foto (la ven la búsqueda y los Docodez sin el plugin). */
+/** The fallback page: the model name and a snapshot (seen by search and by a Docodez without the plugin). */
 function preview(): string {
   const esc = (s: unknown) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
   let img = '';
@@ -199,13 +199,13 @@ function preview(): string {
   return `<h2>${esc(ctx.nodeTitle)}</h2><p>${t.model}: ${esc(state.model ?? '-')}</p>${img}`;
 }
 
-// --- interfaz ------------------------------------------------------------------------------------------
+// --- UI ------------------------------------------------------------------------------------------------
 $('open').textContent = t.open;
 $('wireLabel').textContent = t.wire;
 $('spinLabel').textContent = t.spin;
 $('reset').textContent = t.reset;
 $('saveView').textContent = t.saveView;
-// Fase 9f: lista y color dibujados en la página (los nativos se abrían fuera de lugar con el visor integrado).
+// Phase 9f: list and color drawn in the page (the native ones opened in the wrong place in the embedded viewer).
 const modelPicker = createPicker($('model'), t.model);
 createColorPicker($('color'), 'Color', state.color, (color) => { state.color = color; applyMaterial(); saveLater(); });
 $<HTMLInputElement>('wire').checked = state.wireframe;
@@ -251,7 +251,7 @@ $('open').onclick = async () => {
   if (file) await addModel(file.name, file.data);
 };
 
-// Soltar un archivo sobre el visor (modo edición).
+// Drop a file on the viewer (edit mode).
 view.addEventListener('dragover', (e) => {
   if (ctx.editable) {
     e.preventDefault();
@@ -276,7 +276,7 @@ resize();
 state.model = await refreshModels(state.model);
 await show(state.model, true);
 
-// Para las pruebas automáticas.
+// For automated tests.
 (window as unknown as { __visor3d: unknown }).__visor3d = {
   get loaded() { return !!object; },
   get state() { return state; },

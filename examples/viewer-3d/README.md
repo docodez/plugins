@@ -1,18 +1,18 @@
-# Visor 3D (plugin de Docodez)
+# 3D Viewer (Docodez plugin)
 
-Modelos 3D (STL, OBJ, GLB/glTF) anexos a un nodo. TypeScript + [three.js](https://threejs.org), compilado con
-[Vite](https://vite.dev). Guía de plugins: [`doc/04-plugins.md`](../../doc/04-plugins.md).
+3D models (STL, OBJ, GLB/glTF) attached to a node. TypeScript + [three.js](https://threejs.org), built with
+[Vite](https://vite.dev). Plugin guide: [`doc/04-plugins.md`](../../doc/04-plugins.md).
 
 ```cmd
-npm install          (o: yarn)
-npm run dev          servidor de desarrollo con recarga al guardar - abre el navegador, con un window.docodez de prueba
-npm run build        revisa los tipos (tsc) y compila en dist/
-npm run package      compila y arma ..\out\lynza.visor3d-<versión>.dczp  (lo que se sube a /_admin o se abre con doble clic)
+npm install          (or: yarn)
+npm run dev          dev server with reload on save - opens the browser, with a test window.docodez
+npm run build        type-checks (tsc) and builds into dist/
+npm run package      builds and creates ..\out\lynza.visor3d-<version>.dczp  (what gets uploaded to /_admin or opened with a double click)
 ```
 
-- `public/docodez-plugin.json` y `public/icon.svg` se copian tal cual a `dist/`. La versión del plugin es la de
+- `public/docodez-plugin.json` and `public/icon.svg` are copied as is to `dist/`. The plugin version is the one in
   `docodez-plugin.json`.
-- `src/main.ts` es el visor. Los tipos de la API de Docodez están en `../sdk/docodez.d.ts`.
-- En `npm run dev` (fuera de Docodez) `../sdk/docodez-dev.ts` pone un `window.docodez` de prueba: los datos van al
-  `localStorage`, los anexos quedan en memoria. En la consola: `docodezDev.setEditable(false)` (modo vista),
-  `docodezDev.setTheme('dark')`. No va en el plugin compilado.
+- `src/main.ts` is the viewer. The Docodez API types are in `../sdk/docodez.d.ts`.
+- In `npm run dev` (outside Docodez), `../sdk/docodez-dev.ts` sets up a test `window.docodez`: data goes to
+  `localStorage`, attachments stay in memory. In the console: `docodezDev.setEditable(false)` (view mode),
+  `docodezDev.setTheme('dark')`. It is not included in the built plugin.

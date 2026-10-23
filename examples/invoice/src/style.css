@@ -68,7 +68,7 @@ input.bad { border-color: var(--danger); }
 .choice { border: 1px solid var(--line); background: var(--bg); border-radius: 16px; padding: 5px 12px; }
 .choice.on { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
 
-/* renglones */
+/* lines */
 .items { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
 .item { display: flex; gap: 6px; align-items: center; }
 .item .cell { min-width: 0; }
@@ -91,14 +91,14 @@ input.bad { border-color: var(--danger); }
 .totals div { display: flex; justify-content: space-between; padding: 3px 2px; }
 .totals .total { border-top: 1px solid var(--line); font-size: 17px; padding-top: 6px; }
 
-/* sugerencias */
+/* suggestions */
 .suggest-host { position: relative; width: 100%; }
 .suggest { position: absolute; top: 100%; left: 0; right: 0; min-width: 220px; z-index: 75; background: var(--bg); border: 1px solid var(--line);
   border-radius: 10px; box-shadow: var(--shadow); padding: 4px; max-height: 240px; overflow: auto; margin-top: 2px; }
 .suggest-item { padding: 8px 10px; border-radius: 7px; cursor: pointer; }
 .suggest-item:hover { background: var(--accent-soft); }
 
-/* hoja */
+/* sheet */
 #sheet { position: fixed; inset: 0; z-index: 70; background: rgba(0,0,0,.35); display: flex; align-items: flex-start; justify-content: center; overflow: auto; padding: 24px 10px; }
 #sheetBox { width: min(620px, 100%); background: var(--bg); border-radius: 14px; box-shadow: var(--shadow); padding: 12px 14px 14px; }
 @media (max-width: 560px) { #sheet { padding: 0; } #sheetBox { border-radius: 0; min-height: 100%; } }
@@ -112,7 +112,7 @@ input.bad { border-color: var(--danger); }
 .cols { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
 .col-row { width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 8px; }
 
-/* listas del sdk */
+/* sdk pickers */
 .pick { position: relative; display: inline-block; max-width: 100%; }
 .pick > button { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); min-height: 36px;
   max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
