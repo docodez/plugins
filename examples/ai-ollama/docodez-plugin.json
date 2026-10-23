@@ -1,0 +1,37 @@
+{
+  "id": "lynza.ai-ollama",
+  "name": "Ollama (AI)",
+  "version": "1.0.1",
+  "description": "AI with the models of your own Ollama server (local, free, nothing leaves your network): translate, find the objects or the document in a photo, read text (OCR). For photos qwen2.5vl is the one that draws good boxes; for OCR, glm-ocr.",
+  "i18n": {
+    "es": {
+      "name": "Ollama (AI)",
+      "description": "AI con los modelos de tu propio servidor Ollama (local, gratis, nada sale de tu red): traducir, encontrar los objetos o el documento de una foto, leer texto (OCR). Para fotos, qwen2.5vl es el que da buenos recuadros; para OCR, glm-ocr."
+    },
+    "fr": {
+      "name": "Ollama (IA)",
+      "description": "IA avec les modèles de votre propre serveur Ollama (local, gratuit, rien ne sort de votre réseau) : traduire, trouver les objets ou le document d'une photo, lire le texte (OCR)."
+    }
+  },
+  "category": "ai",
+  "author": "Lynza",
+  "icon": "icon.svg",
+  "apiVersion": 2,
+  "ai": {
+    "protocol": "ollama",
+    "baseUrl": "http://localhost:11434",
+    "baseUrlEditable": true,
+    "needsKey": false,
+    "capabilities": [
+      "text.translate",
+      "image.objects",
+      "image.document",
+      "image.text"
+    ],
+    "models": {
+      "text": "qwen2.5vl:7b",
+      "vision": "qwen2.5vl:7b",
+      "ocr": "glm-ocr:latest"
+    }
+  }
+}

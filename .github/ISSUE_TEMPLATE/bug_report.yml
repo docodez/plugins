@@ -1,0 +1,37 @@
+name: Bug report
+description: Something in the SDK, the docs, the template or an example plugin does not work.
+labels: [bug]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where
+      options:
+        - SDK (docodez.d.ts, docodez-dev.ts, picker.ts)
+        - tools/pack.mjs
+        - Template
+        - An example plugin
+        - Documentation
+        - The API inside Docodez
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. ...\n2. ...\n3. ..."
+  - type: input
+    id: docodez
+    attributes:
+      label: Docodez version and platform
+      placeholder: "1.0.27, Android 14 (Pixel 7) / Windows 11 / Docodez Web in Chrome"
+  - type: textarea
+    id: extra
+    attributes:
+      label: Code, logs or screenshots

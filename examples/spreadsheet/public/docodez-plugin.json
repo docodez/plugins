@@ -1,0 +1,28 @@
+{
+  "id": "lynza.hojas",
+  "name": "Spreadsheets",
+  "version": "1.0.2",
+  "description": "Spreadsheets attached to the node (CSV, Excel XLSX/XLS, LibreOffice ODS): view and edit cells, with tabs for the sheets. Several files per node.",
+  "i18n": {
+    "es": {
+      "name": "Hojas de cálculo",
+      "description": "Planillas anexas al nodo (CSV, Excel XLSX/XLS, LibreOffice ODS): ver y editar celdas, con pestañas para las hojas. Varios archivos por nodo."
+    },
+    "fr": {
+      "name": "Tableurs",
+      "description": "Tableurs joints au nœud (CSV, Excel XLSX/XLS, LibreOffice ODS) : afficher et modifier les cellules, avec des onglets pour les feuilles. Plusieurs fichiers par nœud."
+    }
+  },
+  "category": "productivity",
+  "author": "Lynza",
+  "entry": "index.html",
+  "icon": "icon.svg",
+  "apiVersion": 1,
+  "fileTypes": [
+    ".csv",
+    ".tsv",
+    ".xlsx",
+    ".xls",
+    ".ods"
+  ]
+}

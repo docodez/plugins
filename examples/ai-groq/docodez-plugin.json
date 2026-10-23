@@ -1,0 +1,39 @@
+{
+  "id": "lynza.ai-groq",
+  "name": "Groq (AI)",
+  "version": "1.0.1",
+  "description": "AI with Groq (very fast; it has a free tier with limits; needs an API key): translate, photos, read text, transcribe audio (Whisper large v3).",
+  "i18n": {
+    "es": {
+      "name": "Groq (AI)",
+      "description": "AI con Groq (muy rápido; tiene un nivel gratis con límites; pide una clave de API): traducir, fotos, leer texto, transcribir audio (Whisper large v3)."
+    },
+    "fr": {
+      "name": "Groq (IA)",
+      "description": "IA avec Groq (très rapide ; niveau gratuit avec limites ; clé d'API) : traduire, photos, lire le texte, transcrire l'audio (Whisper large v3)."
+    }
+  },
+  "category": "ai",
+  "author": "Lynza",
+  "icon": "icon.svg",
+  "apiVersion": 2,
+  "ai": {
+    "protocol": "openai",
+    "baseUrl": "https://api.groq.com/openai/v1",
+    "baseUrlEditable": false,
+    "needsKey": true,
+    "keyUrl": "https://console.groq.com/keys",
+    "capabilities": [
+      "text.translate",
+      "image.objects",
+      "image.document",
+      "image.text",
+      "speech.transcribe"
+    ],
+    "models": {
+      "text": "llama-3.3-70b-versatile",
+      "vision": "meta-llama/llama-4-scout-17b-16e-instruct",
+      "transcribe": "whisper-large-v3-turbo"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Plugin ideas and questions
+    url: https://github.com/docodez/plugins/discussions
+    about: Ideas for new plugins, questions and "show your plugin" go to Discussions.
+  - name: Docodez app help
+    url: https://docodez.com
+    about: Help with the Docodez app itself (not plugin development).

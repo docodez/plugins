@@ -1,0 +1,39 @@
+{
+  "id": "lynza.ai-openai",
+  "name": "OpenAI (AI)",
+  "version": "1.0.1",
+  "description": "AI with OpenAI (needs an API key; paid per use): translate, objects and documents in photos, read text, transcribe audio (Whisper).",
+  "i18n": {
+    "es": {
+      "name": "OpenAI (AI)",
+      "description": "AI con OpenAI (pide una clave de API; se paga por uso): traducir, objetos y documentos en fotos, leer texto, transcribir audio (Whisper)."
+    },
+    "fr": {
+      "name": "OpenAI (IA)",
+      "description": "IA avec OpenAI (clé d'API ; payant à l'usage) : traduire, objets et documents dans les photos, lire le texte, transcrire l'audio (Whisper)."
+    }
+  },
+  "category": "ai",
+  "author": "Lynza",
+  "icon": "icon.svg",
+  "apiVersion": 2,
+  "ai": {
+    "protocol": "openai",
+    "baseUrl": "https://api.openai.com/v1",
+    "baseUrlEditable": false,
+    "needsKey": true,
+    "keyUrl": "https://platform.openai.com/api-keys",
+    "capabilities": [
+      "text.translate",
+      "image.objects",
+      "image.document",
+      "image.text",
+      "speech.transcribe"
+    ],
+    "models": {
+      "text": "gpt-4o-mini",
+      "vision": "gpt-4o",
+      "transcribe": "whisper-1"
+    }
+  }
+}

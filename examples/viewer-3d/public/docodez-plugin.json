@@ -1,0 +1,27 @@
+{
+  "id": "lynza.visor3d",
+  "name": "3D Viewer",
+  "version": "1.2.2",
+  "description": "3D models (STL, OBJ, GLB/glTF) attached to the node: rotate, zoom, color, wireframe, and save the view.",
+  "i18n": {
+    "es": {
+      "name": "Visor 3D",
+      "description": "Modelos 3D (STL, OBJ, GLB/glTF) anexos al nodo: girar, acercar, color, alambre, y guardar la vista."
+    },
+    "fr": {
+      "name": "Visionneuse 3D",
+      "description": "Modèles 3D (STL, OBJ, GLB/glTF) joints au nœud : tourner, zoomer, couleur, fil de fer et enregistrer la vue."
+    }
+  },
+  "category": "viewers",
+  "author": "Lynza",
+  "entry": "index.html",
+  "icon": "icon.svg",
+  "apiVersion": 1,
+  "fileTypes": [
+    ".stl",
+    ".obj",
+    ".glb",
+    ".gltf"
+  ]
+}

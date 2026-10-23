@@ -1,0 +1,38 @@
+{
+  "id": "lynza.ai-litellm",
+  "name": "LiteLLM (AI)",
+  "version": "1.0.2",
+  "description": "AI through a LiteLLM proxy (your own gateway in front of Ollama and the cloud providers, with keys that expire). The model names are the ones of the proxy (GET /v1/models).",
+  "i18n": {
+    "es": {
+      "name": "LiteLLM (AI)",
+      "description": "AI por un proxy LiteLLM (tu propia puerta delante de Ollama y de los proveedores en la nube, con claves que vencen). Los nombres de los modelos son los del proxy (GET /v1/models)."
+    },
+    "fr": {
+      "name": "LiteLLM (IA)",
+      "description": "IA par un proxy LiteLLM (votre passerelle devant Ollama et les fournisseurs, avec des clés qui expirent). Les noms des modèles sont ceux du proxy."
+    }
+  },
+  "category": "ai",
+  "author": "Lynza",
+  "icon": "icon.svg",
+  "apiVersion": 2,
+  "ai": {
+    "protocol": "openai",
+    "baseUrl": "http://localhost:4000/v1",
+    "baseUrlEditable": true,
+    "needsKey": true,
+    "capabilities": [
+      "text.translate",
+      "image.objects",
+      "image.document",
+      "image.text",
+      "speech.transcribe"
+    ],
+    "models": {
+      "text": "ollama-chat",
+      "vision": "ollama-vision",
+      "transcribe": "groq-whisper"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+/* Light and dark themes follow Docodez (body.dark). Touch-friendly sizes: it also runs on phones. */
+:root { color-scheme: light dark; --bg: #fff; --fg: #1d1d1f; --line: #d9dde3; --soft: #f1f3f5; --accent: #f08c00; --muted: #6b7280; }
+body.dark { --bg: #1e1f22; --fg: #e8e8ea; --line: #3a3c40; --soft: #2b2d31; --accent: #ffa94d; --muted: #9aa0a6; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 15px "Segoe UI", system-ui, sans-serif; }
+body { display: flex; flex-direction: column; overflow: hidden; }
+body:not(.editable) .edit { display: none !important; }
+[hidden] { display: none !important; }
+button, input { font: inherit; color: inherit; }
+#bar { padding: 8px; border-bottom: 1px solid var(--line); }
+#addForm { display: flex; gap: 8px; }
+#addInput { flex: 1; min-width: 0; min-height: 40px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.btn { min-height: 40px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); cursor: pointer; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+#viewNote { padding: 8px 12px; font-size: 13px; background: var(--soft); color: var(--muted); }
+#list { flex: 1; overflow: auto; padding: 8px; }
+.empty { text-align: center; color: var(--muted); padding: 30px 10px; }
+.note { display: flex; gap: 8px; align-items: center; padding: 8px; border-bottom: 1px solid var(--soft); flex-wrap: wrap; }
+.note .text { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
+.note small { display: block; color: var(--muted); font-size: 12px; }
+.note img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; }
+#toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 8px 14px;
+  border-radius: 16px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s; }
+#toast.on { opacity: .92; }

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Invoice</title>
+  <script type="module" src="/src/main.ts"></script>
+</head>
+<body>
+  <header id="bar">
+    <b id="docTitle"></b>
+    <span class="grow"></span>
+    <div id="viewSwitch">
+      <button type="button" id="viewEdit" class="seg"></button>
+      <button type="button" id="viewPreview" class="seg"></button>
+    </div>
+    <button type="button" id="businessBtn" class="tool">🏢</button>
+    <div class="menu-host">
+      <button type="button" id="shareBtn" class="tool primary"></button>
+      <div id="shareMenu" class="menu" hidden></div>
+    </div>
+  </header>
+  <div id="viewNote" hidden></div>
+  <div id="banner" hidden></div>
+  <div id="content">
+    <main id="editor"></main>
+    <aside id="preview"></aside>
+  </div>
+  <div id="sheet" hidden><div id="sheetBox"></div></div>
+  <div id="modal" hidden></div>
+  <div id="toast"></div>
+</body>
+</html>

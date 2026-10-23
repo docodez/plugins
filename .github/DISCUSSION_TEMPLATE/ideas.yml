@@ -1,0 +1,21 @@
+labels: [idea]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: A plugin you would like to have (or build), or something the plugin API should allow.
+    validations:
+      required: true
+  - type: textarea
+    id: who
+    attributes:
+      label: Who would use it, and for what?
+  - type: dropdown
+    id: build
+    attributes:
+      label: Would you build it?
+      options:
+        - "Yes"
+        - "With help"
+        - "No, just the idea"

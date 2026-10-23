@@ -1,0 +1,20 @@
+name: API request
+description: Your plugin needs something window.docodez does not offer yet.
+labels: [api]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What does your plugin need to do?
+      description: The use case first; the API shape can be discussed after.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: An idea of the API (optional)
+      render: ts
+  - type: textarea
+    id: today
+    attributes:
+      label: How do you work around it today?

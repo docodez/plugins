@@ -1,0 +1,20 @@
+{
+  "name": "docodez-hojas",
+  "private": true,
+  "version": "1.0.2",
+  "description": "Plugin de Docodez: hojas de cálculo (CSV, XLSX, XLS, ODS) anexas al nodo, con SheetJS. Compilado con Vite.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "package": "npm run build && node ../../tools/pack.mjs dist",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0"
+  }
+}

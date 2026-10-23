@@ -1,0 +1,21 @@
+{
+  "id": "lynza.compras",
+  "name": "Shopping List",
+  "version": "1.2.0",
+  "description": "A shopping list in the node: items grouped like in the store, with quantity, note, photos and several prices (price per kg/L/unit and the estimated total). Your catalogs (grocery, hardware store, electronics...) are kept in the app, not in the document. Stores (each with its catalogs), the list by store, purchase price, and tax per store. Calculator included.",
+  "i18n": {
+    "es": {
+      "name": "Lista de compras",
+      "description": "Una lista de compras en el nodo: productos agrupados como en la tienda, con cantidad, nota, fotos y varios precios (precio por kg/L/unidad y el total estimado). Tus catálogos (supermercado, ferretería, electrónica...) quedan en la app, no en el documento. Tiendas (cada una con sus catálogos), la lista por tienda, precio de compra e impuestos por tienda. Con calculadora."
+    },
+    "fr": {
+      "name": "Liste de courses",
+      "description": "Une liste de courses dans le nœud : articles groupés comme au magasin, avec quantité, note, photos et plusieurs prix (prix au kg/L/unité et total estimé). Vos catalogues (épicerie, quincaillerie, électronique...) restent dans l'application, pas dans le document. Magasins (chacun avec ses catalogues), la liste par magasin, prix d'achat et taxes par magasin. Avec calculatrice."
+    }
+  },
+  "category": "productivity",
+  "author": "Lynza",
+  "entry": "index.html",
+  "icon": "icon.svg",
+  "apiVersion": 2
+}

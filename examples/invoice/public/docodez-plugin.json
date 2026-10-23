@@ -1,0 +1,21 @@
+{
+  "id": "lynza.invoice",
+  "name": "Invoice",
+  "version": "1.0.0",
+  "description": "Invoices, quotes and receipts for small businesses: several templates, your own table columns, taxes (GST/HST, VAT, IVA...), discount and payments. Your logo, address and tax numbers are kept in the app for every invoice. Share it as PDF, image or web page (WhatsApp, SMS, email).",
+  "i18n": {
+    "es": {
+      "name": "Facturas",
+      "description": "Facturas, cotizaciones y recibos para negocios pequeños: varias plantillas, las columnas que quieras, impuestos (IVA, GST/HST...), descuento y pagos. Tu logo, dirección y números fiscales quedan en la app para todas las facturas. Se comparte como PDF, imagen o página web (WhatsApp, SMS, correo)."
+    },
+    "fr": {
+      "name": "Factures",
+      "description": "Factures, devis et reçus pour petites entreprises : plusieurs modèles, vos propres colonnes, taxes (TPS/TVH, TVQ, TVA...), remise et paiements. Votre logo, adresse et numéros de taxe restent dans l'application pour toutes les factures. Partagez-la en PDF, image ou page web (WhatsApp, SMS, courriel)."
+    }
+  },
+  "category": "productivity",
+  "author": "Lynza",
+  "entry": "index.html",
+  "icon": "icon.svg",
+  "apiVersion": 2
+}

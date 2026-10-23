@@ -1,0 +1,57 @@
+name: Build plugins
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        plugin:
+          - template
+          - examples/shopping-list
+          - examples/spreadsheet
+          - examples/viewer-3d
+          - examples/car-log
+          - examples/invoice
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ matrix.plugin }}/package-lock.json
+      - name: Install
+        working-directory: ${{ matrix.plugin }}
+        run: npm ci
+      - name: Type-check, build and package
+        working-directory: ${{ matrix.plugin }}
+        run: npm run package
+      - name: Artifact name
+        id: name
+        run: echo "value=$(basename '${{ matrix.plugin }}')" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.name.outputs.value }}
+          path: out/*.dczp
+          if-no-files-found: error
+
+  ai-plugins:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Package the AI provider plugins
+        run: for p in examples/ai-*; do node tools/pack.mjs "$p"; done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ai-plugins
+          path: out/*.dczp
+          if-no-files-found: error

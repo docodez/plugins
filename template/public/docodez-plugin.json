@@ -1,0 +1,17 @@
+{
+  "id": "example.notes",
+  "name": "Quick Notes",
+  "version": "1.0.0",
+  "description": "A plugin template: a list of short notes with an optional photo, saved in the node.",
+  "i18n": {
+    "es": {
+      "name": "Notas rápidas",
+      "description": "Una plantilla de plugin: una lista de notas cortas con una foto opcional, guardada en el nodo."
+    }
+  },
+  "category": "productivity",
+  "author": "Your name",
+  "entry": "index.html",
+  "icon": "icon.svg",
+  "apiVersion": 2
+}

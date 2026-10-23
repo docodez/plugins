@@ -1,0 +1,21 @@
+{
+  "id": "lynza.carlog",
+  "name": "Car Log",
+  "version": "1.0.0",
+  "description": "Everything about a car in one node: fuel log with real consumption (full-tank method) and spending, repairs with invoices and photos, parts and accessories (tires for each season, wipers, bulbs, oil...), trips and notes. Read the pump or the odometer from a photo with AI.",
+  "i18n": {
+    "es": {
+      "name": "Bitácora del carro",
+      "description": "Todo de un carro en un nodo: la gasolina con el consumo real (método de tanque lleno) y lo gastado, las reparaciones con facturas y fotos, las piezas y accesorios (gomas para cada temporada, limpiaparabrisas, lámparas, aceite...), los viajes y notas. Lee la bomba o el kilometraje de una foto con AI."
+    },
+    "fr": {
+      "name": "Carnet de voiture",
+      "description": "Tout sur une voiture dans un nœud : le carburant avec la consommation réelle (méthode du plein) et les dépenses, les réparations avec factures et photos, les pièces et accessoires (pneus pour chaque saison, essuie-glaces, ampoules, huile...), les voyages et des notes. Lit la pompe ou le compteur sur une photo avec l'IA."
+    }
+  },
+  "category": "productivity",
+  "author": "Lynza",
+  "entry": "index.html",
+  "icon": "icon.svg",
+  "apiVersion": 2
+}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Shopping list</title>
+  <script type="module" src="/src/main.ts"></script>
+</head>
+<body>
+  <header id="bar">
+    <div id="addBox" class="edit">
+      <input id="addInput" autocomplete="off" spellcheck="false" enterkeyhint="done">
+      <button type="button" id="addBtn" class="tool">＋</button>
+      <div id="suggest" hidden></div>
+    </div>
+    <div id="shopPick" class="edit"></div>
+    <button type="button" id="catalogBtn" class="tool"><span>📚</span><span id="catalogLabel" class="label"></span></button>
+    <button type="button" id="calcBtn" class="tool">🧮</button>
+    <div class="menu-host">
+      <button type="button" id="menuBtn" class="tool menu-btn">⋮</button>
+      <div id="menu" class="menu" hidden></div>
+    </div>
+  </header>
+  <div id="viewNote" hidden></div>
+  <div id="banner" hidden></div>
+  <div id="content">
+    <main id="list"></main>
+    <aside id="panel" hidden>
+      <div id="panelHead">
+        <div id="catalogPick"></div>
+        <div class="menu-host">
+          <button type="button" id="catalogMenuBtn" class="tool menu-btn">⋮</button>
+          <div id="catalogMenu" class="menu" hidden></div>
+        </div>
+        <button type="button" id="editCatalog" class="tool"></button>
+        <button type="button" id="closePanel" class="tool">✕</button>
+      </div>
+      <input id="catalogSearch" type="search" autocomplete="off">
+      <div id="panelBody"></div>
+    </aside>
+  </div>
+  <footer id="totals"></footer>
+  <div id="calc" hidden></div>
+  <div id="sheet" hidden><div id="sheetBox"></div></div>
+  <div id="viewer" hidden>
+    <img id="viewerImg" alt="">
+    <div id="viewerBar">
+      <button type="button" id="viewerPrev" class="tool">‹</button>
+      <span id="viewerInfo"></span>
+      <button type="button" id="viewerNext" class="tool">›</button>
+      <button type="button" id="viewerDelete" class="tool">🗑</button>
+      <button type="button" id="viewerClose" class="tool">✕</button>
+    </div>
+  </div>
+  <div id="modal" hidden></div>
+  <div id="toast"></div>
+</body>
+</html>

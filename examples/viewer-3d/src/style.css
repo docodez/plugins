@@ -1,0 +1,30 @@
+:root { color-scheme: light dark; --bg: #f4f5f7; --bar: #ffffff; --fg: #1d1d1f; --line: #d0d4da; --accent: #7e57c2; }
+body.dark { --bg: #1b1c1f; --bar: #26272b; --fg: #e8e8ea; --line: #3a3c40; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--fg); font: 14px "Segoe UI", system-ui, sans-serif; }
+body { display: flex; flex-direction: column; }
+#bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 6px 8px; background: var(--bar); border-bottom: 1px solid var(--line); }
+#bar select, #bar button { font: inherit; padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); min-height: 32px; }
+#bar button:hover { border-color: var(--accent); }
+#bar .opt { display: inline-flex; align-items: center; gap: 4px; }
+#bar input[type=color] { width: 34px; height: 30px; padding: 0; border: 1px solid var(--line); border-radius: 6px; background: none; }
+#status { opacity: .7; font-size: 12px; margin-left: auto; }
+body:not(.editable) .edit { display: none; }
+#view { position: relative; flex: 1; min-height: 0; }
+#view canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+#empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; opacity: .7; pointer-events: none; }
+#view.drop { outline: 3px dashed var(--accent); outline-offset: -8px; }
+
+/* Fase 9f: listas y paleta de picker.ts (en lugar de <select> / <input type=color>). */
+.pick { position: relative; display: inline-block; }
+.pick > button { font: inherit; padding: 5px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); min-height: 32px; cursor: pointer; }
+.pick > button.pick-color { width: 34px; padding: 0; }
+.pick-list { position: absolute; top: calc(100% + 4px); left: 0; z-index: 20; min-width: 100%; max-height: 50vh; overflow: auto;
+  background: var(--bar); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.25); padding: 4px; }
+.pick-list[hidden] { display: none; }
+.pick-item { padding: 6px 10px; border-radius: 5px; white-space: nowrap; cursor: pointer; }
+.pick-item:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.pick-item.selected { font-weight: 600; color: var(--accent); }
+.pick-palette { display: grid; grid-template-columns: repeat(8, 22px); gap: 4px; width: max-content; }
+.pick-swatch { width: 22px; height: 22px; border: 1px solid var(--line); border-radius: 4px; padding: 0; cursor: pointer; }
+.pick-hex { grid-column: 1 / -1; font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: 5px; background: var(--bg); color: var(--fg); }
